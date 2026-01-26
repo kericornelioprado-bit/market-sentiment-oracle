@@ -1,0 +1,8 @@
+# Credenciales de APIs (NO SUBIR A GITHUB)
+NEWS_API_KEY=tu_clave_real_de_newsapi_aqui
+ALPACA_API_KEY=tu_clave_de_alpaca
+ALPACA_SECRET_KEY=tu_secreto_de_alpaca
+
+# Configuración del Proyecto
+GCP_PROJECT_ID=tu-id-de-proyecto-gcp
+GCP_REGION=us-central1

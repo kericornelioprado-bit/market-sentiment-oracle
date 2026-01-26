@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.class
+.venv/
+venv/
+*.env
+
+# Docker
+.dockerignore
+
+# Variables de Entorno y Secretos (¡CRÍTICO!)
+.env
+*.tfvars
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+
+# Datos (No subir archivos pesados)
+data/
+*.parquet
+*.csv
+*.pkl
+*.h5
+
+# IDEs
+.vscode/
+.idea/
+*.swp
