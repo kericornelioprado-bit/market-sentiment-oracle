@@ -9,16 +9,14 @@ venv/
 # Docker
 .dockerignore
 
-# Variables de Entorno y Secretos (¡CRÍTICO!)
-.env
-*.tfvars
+# Terraform
+.terraform/
 *.tfstate
 *.tfstate.backup
-.terraform/
-.terraform.lock.hcl
+*.tfvars
 
-# Datos (No subir archivos pesados)
-data/
+# Datos (La barra inicial es CRÍTICA)
+/data/
 *.parquet
 *.csv
 *.pkl
