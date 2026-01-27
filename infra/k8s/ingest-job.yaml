@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: news-ingestion-job-v2-dns-fix # Cambiamos nombre para evitar conflictos
+spec:
+  template:
+    spec:
+      # --- EL ARREGLO ESTÁ AQUÍ ---
+      # Esto obliga al pod a usar la red del nodo directamente para resolver nombres
+      dnsPolicy: Default 
+      containers:
+      - name: ingestor
+        image: us-central1-docker.pkg.dev/market-oracle-tesis/market-repo/market-oracle:v2
+        env:
+        - name: GCS_BUCKET_NAME
+          value: "market-oracle-tesis-data-lake" 
+        envFrom:
+        - secretRef:
+            name: app-secrets
+      restartPolicy: Never
+  backoffLimit: 2

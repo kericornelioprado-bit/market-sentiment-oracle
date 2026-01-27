@@ -2,70 +2,84 @@ import requests
 import pandas as pd
 import os
 from datetime import datetime, timedelta
-import time
-from dotenv import load_dotenv # <--- Importamos dotenv
+from dotenv import load_dotenv
+from google.cloud import storage # <--- Nueva importación
 
-# 1. Cargar variables de entorno
+# Cargar variables
 load_dotenv()
-
-# 2. Obtener la Key de manera segura
 API_KEY = os.getenv("NEWS_API_KEY")
+# Leemos el nombre del bucket desde una variable de entorno (que configuraremos en Kubernetes)
+BUCKET_NAME = os.getenv("GCS_BUCKET_NAME") 
 
-# Validación de seguridad
-if not API_KEY:
-    raise ValueError("❌ ERROR CRÍTICO: No se encontró NEWS_API_KEY en el archivo .env")
+def upload_to_gcs(source_file_name, destination_blob_name):
+    """Sube un archivo al bucket de Google Cloud Storage."""
+    if not BUCKET_NAME:
+        print("⚠️ No se definió GCS_BUCKET_NAME. Saltando subida a la nube.")
+        return
 
-# --- CONFIGURACIÓN ---
-TICKERS = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'TSLA']
-OUTPUT_DIR = "data/raw/news"
-FROM_DATE = (datetime.now() - timedelta(days=28)).strftime('%Y-%m-%d')
+    try:
+        storage_client = storage.Client()
+        bucket = storage_client.bucket(BUCKET_NAME)
+        blob = bucket.blob(destination_blob_name)
+
+        blob.upload_from_filename(source_file_name)
+        print(f"☁️ Archivo subido exitosamente a: gs://{BUCKET_NAME}/{destination_blob_name}")
+    except Exception as e:
+        print(f"❌ Error subiendo a GCS: {e}")
 
 def fetch_news():
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-    print(f"--- Descargando Noticias desde {FROM_DATE} ---")
+    if not API_KEY:
+        raise ValueError("❌ No se encontró la API Key en el .env")
+    
+    # Definir fechas (últimos 3 días para asegurar datos)
+    end_date = datetime.now()
+    start_date = end_date - timedelta(days=3)
+    
+    symbols = ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "META", "NVDA"]
+    
+    # Asegurar directorio local
+    output_dir = "data/raw/news"
+    os.makedirs(output_dir, exist_ok=True)
 
-    for ticker in TICKERS:
-        print(f"📡 Buscando noticias para: {ticker}...")
-        
-        url = (f'https://newsapi.org/v2/everything?'
-               f'q={ticker}&'
-               f'from={FROM_DATE}&'
-               f'sortBy=popularity&'
-               f'language=en&'
-               f'apiKey={API_KEY}') # Usamos la variable cargada
-        
-        try:
-            response = requests.get(url)
-            response.raise_for_status() # Lanza error si no es 200 OK
-            
-            data = response.json()
-            articles = data.get('articles', [])
-            
-            if not articles:
-                print(f"⚠️ No se encontraron noticias para {ticker}")
-                continue
+    print(f"--- Descargando Noticias desde {start_date.date()} ---")
 
+    for symbol in symbols:
+        print(f"📡 Buscando noticias para: {symbol}...")
+        
+        url = (
+            f"https://newsapi.org/v2/everything?"
+            f"q={symbol}&"
+            f"from={start_date.date()}&"
+            f"sortBy=publishedAt&"
+            f"language=en&"
+            f"apiKey={API_KEY}"
+        )
+        
+        response = requests.get(url)
+        data = response.json()
+        
+        articles = data.get("articles", [])
+        
+        if articles:
+            # Convertir a DataFrame
             df = pd.DataFrame(articles)
+            df['symbol'] = symbol
+            df['fetched_at'] = datetime.now()
             
-            if not df.empty:
-                # Seleccionamos columnas relevantes para el modelo NLP
-                cols_to_keep = ['publishedAt', 'title', 'description', 'source', 'url']
-                # Aseguramos que existan las columnas antes de filtrar
-                existing_cols = [c for c in cols_to_keep if c in df.columns]
-                df = df[existing_cols]
-                
-                # Limpieza de la fuente
-                if 'source' in df.columns:
-                    df['source'] = df['source'].apply(lambda x: x['name'] if isinstance(x, dict) else x)
-                
-                filename = f"{OUTPUT_DIR}/{ticker}_news.parquet"
-                df.to_parquet(filename)
-                print(f"✅ Guardado: {filename} ({len(df)} artículos)")
+            # 1. Guardar localmente (formato Parquet)
+            filename = f"{symbol}_news.parquet"
+            local_path = os.path.join(output_dir, filename)
+            df.to_parquet(local_path, index=False)
+            print(f"✅ Guardado local: {local_path} ({len(df)} artículos)")
             
-        except requests.exceptions.RequestException as e:
-            print(f"❌ Error de red o API para {ticker}: {e}")
-        
-        time.sleep(1) 
+            # 2. Subir a la nube (Google Cloud Storage)
+            # Guardamos con estructura de carpetas: raw/news/YYYY-MM-DD/AAPL.parquet
+            date_folder = datetime.now().strftime("%Y-%m-%d")
+            gcs_path = f"raw/news/{date_folder}/{filename}"
+            upload_to_gcs(local_path, gcs_path)
+            
+        else:
+            print(f"⚠️ No se encontraron noticias recientes para {symbol}")
 
 if __name__ == "__main__":
     fetch_news()
