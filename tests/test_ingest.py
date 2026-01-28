@@ -3,7 +3,14 @@ import os
 import pandas as pd
 import requests
 from unittest.mock import MagicMock, patch
+import src.data.ingest_news as ingest_module
 from src.data.ingest_news import fetch_news, upload_to_gcs
+
+@pytest.fixture(autouse=True)
+def reset_global_client():
+    ingest_module._storage_client = None
+    yield
+    ingest_module._storage_client = None
 
 # --- Casos de Prueba para 'fetch_news' ---
 
@@ -161,6 +168,9 @@ def test_data_structure(mock_upload, mock_requests_get, mocker):
     # Mock: Reemplaza la clase DataFrame de pandas para espiar sus llamadas.
     # El mock original se pasa a la función de prueba para poder hacer aserciones sobre él.
     mock_df_class = mocker.patch('pandas.DataFrame', spec=True)
+
+    # Mock: Evitar que pandera intente validar el mock de DataFrame
+    mocker.patch('src.data.ingest_news.NewsArticleSchema.validate', side_effect=lambda df: df)
 
     fetch_news()
 
