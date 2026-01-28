@@ -10,6 +10,15 @@ Combina análisis de sentimiento de noticias financieras (usando **FinBERT**) co
 * **Modelado:** PyTorch (FinBERT), TensorFlow (LSTM), Scikit-learn (SVM).
 * **Validación:** Walk-Forward Validation y Backtrader.
 
+## 📚 Documentación Detallada
+
+El mantenimiento de la documentación es gestionado automáticamente por **Chronicler**.
+
+*   [📜 CHANGELOG.md](CHANGELOG.md): Historial de cambios, nuevas funcionalidades y correcciones.
+*   [📊 DATA_DICTIONARY.md](DATA_DICTIONARY.md): Definición de esquemas de datos (Raw y Processed).
+*   [☁️ INFRASTRUCTURE.md](INFRASTRUCTURE.md): Mapa de recursos en la nube y configuración de Kubernetes.
+*   [🧪 TESTING.md](TESTING.md): Estrategia de pruebas y cobertura actual.
+
 ## Estructura del Proyecto
 ├── data/               # Datos locales (no subidos a git)
 ├── infra/              # Código de Infraestructura (Terraform & K8s)
