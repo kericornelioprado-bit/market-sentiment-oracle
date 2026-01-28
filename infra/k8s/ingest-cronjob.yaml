@@ -1,0 +1,45 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ingest-news-daily
+spec:
+  # Ejecutar a las 6:00 AM (Hora CDMX es UTC-6, así que en UTC sería las 12:00 PM)
+  # Nota: Verifica la zona horaria de tu cluster. Si es UTC, usa "0 12 * * 1-5".
+  # "Minuto 0, Hora 12, Cualquier día del mes, Cualquier mes, Lunes a Viernes"
+  schedule: "0 12 * * 1-5"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: ingest-news
+            # Usaremos la imagen que construiremos en el siguiente paso
+            image: us-central1-docker.pkg.dev/market-oracle-tesis/market-repo/ingest-news:latest
+            imagePullPolicy: Always
+            env:
+            # Inyectamos las credenciales desde los Secretos de K8s
+            - name: NEWS_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: market-secrets
+                  key: news-api-key
+            - name: GCS_BUCKET_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: market-secrets
+                  key: gcs-bucket-name
+            resources:
+              requests:
+                memory: "256Mi"
+                cpu: "200m"
+              limits:
+                memory: "512Mi"
+                cpu: "500m"
+          # Configuración para usar Nodos Spot (Ahorro de costos)
+          tolerations:
+          - key: "cloud.google.com/gke-spot"
+            operator: "Equal"
+            value: "true"
+            effect: "NoSchedule"
+          # Si definiste nodeSelector en Terraform para spot, añádelo aquí
+          restartPolicy: OnFailure
