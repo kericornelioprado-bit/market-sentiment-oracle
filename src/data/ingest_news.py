@@ -16,6 +16,14 @@ load_dotenv()
 API_KEY = os.getenv("NEWS_API_KEY")
 BUCKET_NAME = os.getenv("GCS_BUCKET_NAME")
 
+_storage_client = None
+
+def get_storage_client():
+    global _storage_client
+    if _storage_client is None:
+        _storage_client = storage.Client()
+    return _storage_client
+
 # --- Definición del Esquema de Validación ---
 class NewsArticleSchema(DataFrameModel):
     """
@@ -46,7 +54,7 @@ def upload_to_gcs(source_file_name, destination_blob_name):
         print("⚠️ No se definió GCS_BUCKET_NAME. Saltando subida a la nube.")
         return
     try:
-        storage_client = storage.Client()
+        storage_client = get_storage_client()
         bucket = storage_client.bucket(BUCKET_NAME)
         blob = bucket.blob(destination_blob_name)
         blob.upload_from_filename(source_file_name)
