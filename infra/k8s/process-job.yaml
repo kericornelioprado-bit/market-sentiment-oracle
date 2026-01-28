@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: sentiment-processor-manual-01
+spec:
+  template:
+    spec:
+      containers:
+      - name: processor
+        # Tu imagen recién subida
+        image: us-central1-docker.pkg.dev/market-oracle-tesis/market-oracle-repo/sentiment-processor:v1
+        imagePullPolicy: Always
+        resources:
+          requests:
+            memory: "1Gi"   # Mantenemos la RAM, esa sí es necesaria
+            cpu: "100m"     # Bajamos de 500m a 100m para que quepa sí o sí
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"    # Si sobra CPU, que use hasta 1 núcleo
+          limits:
+            memory: "2Gi"  # FinBERT necesita espacio para cargar la red neuronal
+            cpu: "1000m"
+        env:
+        # Importante: Si usaste secretos para GCS en la Fase 1, asegúrate de que el entorno tenga acceso.
+        # Por ahora asumimos que el clúster tiene permisos vía Workload Identity o Nodos.
+        - name: PYTHONUNBUFFERED
+          value: "1"
+      restartPolicy: Never
+  backoffLimit: 2

@@ -1,0 +1,21 @@
+# Usamos una imagen base ligera de Python 3.12
+FROM python:3.12-slim
+
+# Variables de entorno para optimizar Python en contenedores
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+# 1. Copiar requisitos
+COPY requirements.txt .
+
+# 2. Instalar dependencias
+# Truco: --extra-index-url busca primero en los repositorios de CPU de PyTorch
+RUN pip install --no-cache-dir -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu
+
+# 3. Copiar el código fuente
+COPY src/ src/
+
+# 4. Comando por defecto: Ejecutar el procesador
+CMD ["python", "src/process_sentiment.py"]
