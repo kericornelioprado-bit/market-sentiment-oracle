@@ -1,6 +1,4 @@
 import pytest
-import os
-import pandas as pd
 import requests
 from unittest.mock import MagicMock, patch
 import src.data.ingest_news as ingest_module
