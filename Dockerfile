@@ -31,9 +31,17 @@ ENV PATH="/app/.venv/bin:$PATH"
 
 WORKDIR /app
 
-# Copiamos el código fuente limpio
-COPY src/ src/
-COPY infra/ infra/
+# Crear usuario no-root
+RUN useradd -m -u 1000 appuser && \
+    mkdir -p /app/data && \
+    chown -R appuser:appuser /app
+
+# Copiamos el código fuente limpio con permisos
+COPY --chown=appuser:appuser src/ src/
+COPY --chown=appuser:appuser infra/ infra/
+
+# Cambiar al usuario no-root
+USER appuser
 
 # Comando por defecto
 CMD ["python", "src/data/ingest_news.py"]
