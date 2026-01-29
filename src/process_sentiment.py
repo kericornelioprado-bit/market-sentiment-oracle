@@ -1,4 +1,3 @@
-import os
 import pandas as pd
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
@@ -49,6 +48,62 @@ def get_sentiment(text, tokenizer, model):
     max_score_idx = scores.index(max(scores))
     return labels[max_score_idx], scores[max_score_idx]
 
+def get_sentiment_batch(texts, tokenizer, model, batch_size=32):
+    """
+    Convierte una lista de textos en sentimientos usando FinBERT por lotes.
+    Retorna: Lista de tuplas (etiqueta, score).
+    Optimizado para evitar overhead de llamadas individuales.
+    """
+    results = []
+
+    # Procesar en lotes
+    for i in range(0, len(texts), batch_size):
+        batch_texts = texts[i:i+batch_size]
+
+        # Identificar textos validos para inferencia
+        valid_indices = []
+        valid_texts = []
+        # Inicializar resultados con neutral por defecto para textos vacios
+        batch_results = [("neutral", 0.0)] * len(batch_texts)
+
+        for idx, text in enumerate(batch_texts):
+            if isinstance(text, str) and text.strip():
+                valid_indices.append(idx)
+                valid_texts.append(text)
+
+        # Si no hay textos validos en el lote, continuar
+        if not valid_texts:
+            results.extend(batch_results)
+            continue
+
+        # Tokenizar solo los validos
+        inputs = tokenizer(valid_texts, return_tensors="pt", truncation=True, padding=True, max_length=512)
+
+        # Mover a device del modelo (GPU/CPU)
+        inputs = {k: v.to(model.device) for k, v in inputs.items()}
+
+        # Inferencia
+        with torch.no_grad():
+            outputs = model(**inputs)
+
+        predictions = torch.nn.functional.softmax(outputs.logits, dim=-1)
+
+        # Mapping labels
+        labels_map = ["positive", "negative", "neutral"]
+
+        for j, probs in enumerate(predictions):
+            scores = probs.tolist()
+            max_score = max(scores)
+            max_idx = scores.index(max_score)
+
+            # Asignar resultado a la posicion original
+            original_idx = valid_indices[j]
+            batch_results[original_idx] = (labels_map[max_idx], max_score)
+
+        results.extend(batch_results)
+
+    return results
+
 def process_bucket_files():
     """Recorre el bucket, procesa archivos raw y guarda los procesados."""
     storage_client = storage.Client()
@@ -80,9 +135,14 @@ def process_bucket_files():
         print("   🧠 Analizando sentimientos...")
         
         # Analizamos el título (suele ser más denso en información que el description)
-        df[["sentiment_label", "sentiment_score"]] = df["title"].apply(
-            lambda x: pd.Series(get_sentiment(x, tokenizer, model))
-        )
+        print("   🧠 Analizando sentimientos por lotes...")
+        titles = df["title"].tolist()
+        batch_results = get_sentiment_batch(titles, tokenizer, model, batch_size=32)
+
+        df_results = pd.DataFrame(batch_results, columns=["sentiment_label", "sentiment_score"])
+        # Usar .values para evitar problemas de alineacion de indices si df esta filtrado
+        df["sentiment_label"] = df_results["sentiment_label"].values
+        df["sentiment_score"] = df_results["sentiment_score"].values
         
         # --- GUARDAR ---
         # Definir nueva ruta: data/processed/embeddings/...

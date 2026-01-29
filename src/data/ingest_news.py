@@ -7,7 +7,6 @@ from google.cloud import storage
 
 # --- CORRECCIÓN DE IMPORTACIONES PANDERA ---
 # Importamos todo desde pandera.pandas para evitar el FutureWarning
-import pandera.pandas as pa
 from pandera.pandas import DataFrameModel, Field, check, typing
 from pandera.errors import SchemaError
 
