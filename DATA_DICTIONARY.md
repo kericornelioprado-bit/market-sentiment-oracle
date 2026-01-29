@@ -40,6 +40,6 @@ Datos enriquecidos con análisis de sentimiento utilizando FinBERT.
 | Columna | Tipo | Origen | Descripción |
 | :--- | :--- | :--- | :--- |
 | `sentiment_label` | String | FinBERT | Categoría de sentimiento: `positive`, `negative`, `neutral`. |
-| `sentiment_score` | Float | FinBERT | Puntuación de confianza de la predicción (0.0 - 1.0). |
+| `sentiment_score` | Float | FinBERT | Puntuación de confianza de la predicción (0.0 - 1.0, Softmax). |
 
 > **Nota**: Estos campos se añaden al esquema de Noticias Raw durante el procesamiento.

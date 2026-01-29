@@ -5,6 +5,15 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.1.1] - 2026-01-29
+
+### 🚀 Nuevas Funcionalidades
+- Implementación de procesamiento por lotes (`get_sentiment_batch`) en `process_sentiment.py` para optimizar la inferencia de FinBERT.
+
+### 🧪 Testing
+- Adición de `test_process_sentiment.py` para validar la lógica de batching y manejo de casos vacíos.
+- Adición de `test_integration.py` para pruebas end-to-end de ingesta.
+
 ## [v0.1.0] - 2026-01-28
 
 ### 🚀 Nuevas Funcionalidades
