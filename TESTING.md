@@ -26,6 +26,23 @@ Se verifica el módulo `src.data.ingest_news` para asegurar la robustez de la ex
 * **Interacción con la Nube (GCS)**:
     * Verificación de llamadas a `upload_from_filename` sin conexión real a internet.
 
+### 2. Procesamiento de Sentimiento (`test_process_sentiment.py`)
+
+Se verifican las optimizaciones de inferencia en `src.process_sentiment`.
+
+* **Lógica de Batching**:
+    * Validación de `get_sentiment_batch` para asegurar que los resultados correspondan a los inputs en el orden correcto.
+* **Manejo de Casos Borde**:
+    * Verificación del comportamiento ante textos vacíos o nulos (retorno de "neutral").
+
+### 3. Pruebas de Integración (`test_integration.py`)
+
+Pruebas end-to-end simuladas para validar el flujo completo.
+
+* **Pipeline de Ingesta**:
+    * Ejecución de `fetch_news` con mocks de `requests` y `google.cloud.storage`.
+    * Verificación de la creación de archivos Parquet y llamadas de subida a GCS.
+
 ## 🚀 Ejecución de Pruebas
 
 Para ejecutar la suite de pruebas localmente:
