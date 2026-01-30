@@ -1,10 +1,3 @@
-resource "google_storage_bucket" "data_lake" {
-  name          = "${var.project_id}-data-lake"
-  location      = "US"
-  force_destroy = true
-  uniform_bucket_level_access = true
-}
-
 resource "google_container_cluster" "primary" {
   name     = var.cluster_name
   location = "${var.region}-a"
