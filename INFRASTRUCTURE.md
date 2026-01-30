@@ -35,6 +35,11 @@ Orquestación de cargas de trabajo definida en manifiestos YAML.
         * Limit: 500m CPU, 512Mi RAM.
 
 ### Jobs (Procesamiento Batch)
+* **`news-ingestion-job-v2-dns-fix`**
+    * **Propósito**: Ingesta manual de noticias con corrección de DNS.
+    * **Imagen**: `us-central1-docker.pkg.dev/market-oracle-tesis/market-repo/market-oracle:v2`
+    * **Configuración**: `dnsPolicy: Default` para resolución de nombres en la red del nodo.
+
 * **`sentiment-processor-manual-01`**
     * **Propósito**: Ejecución del pipeline de análisis de sentimiento (FinBERT).
     * **Imagen**: `us-central1-docker.pkg.dev/market-oracle-tesis/market-oracle-repo/sentiment-processor:v1`
@@ -48,3 +53,4 @@ Orquestación de cargas de trabajo definida en manifiestos YAML.
 Imágenes almacenadas en Google Artifact Registry:
 1.  `ingest-news`: Scripts de extracción de NewsAPI.
 2.  `sentiment-processor`: Entorno PyTorch (CPU) + Transformers para FinBERT.
+3.  `market-oracle`: Imagen principal unificada (v2) para ingesta y otros procesos.

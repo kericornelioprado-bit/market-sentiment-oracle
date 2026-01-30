@@ -5,6 +5,20 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.2.0] - 2026-01-29
+
+### 🚀 Nuevas Funcionalidades
+- Pipeline End-to-End completo (Features, SVM/LSTM, Backtest, Dashboard).
+- Generación de indicadores técnicos (RSI, MACD, Bollinger) en `src/features/technical_indicators.py`.
+- Fusión de datos (Precios + Sentimiento + Indicadores) en `src/features/merge_data.py`.
+- Entrenamiento de modelos LSTM y SVM para predicción de mercado.
+
+### 🏗️ Infraestructura
+- Jobs de Kubernetes para ingesta (`news-ingestion-job-v2-dns-fix`) y procesamiento (`process-job.yaml`).
+
+### 🧪 Testing
+- Tests unitarios para features, modelos, dashboard y backtesting.
+
 ## [v0.1.1] - 2026-01-29
 
 ### 🚀 Nuevas Funcionalidades
