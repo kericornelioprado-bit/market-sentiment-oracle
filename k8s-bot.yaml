@@ -1,0 +1,46 @@
+
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: trading-bot
+spec:
+  # Ejecutar cada hora (minuto 0) de Lunes a Viernes
+  # Para pruebas de fin de semana, úsalo cada hora: "0 * * * *"
+  schedule: "0 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: bot
+            # 👇 Aquí va la URL de tu imagen que subimos a Artifact Registry
+            image: us-central1-docker.pkg.dev/market-oracle-tesis/market-oracle-repo/trading-bot:v1
+            imagePullPolicy: Always
+            env:
+            # Inyectamos los secretos como variables de entorno
+            - name: ALPACA_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: bot-secrets
+                  key: ALPACA_API_KEY
+            - name: ALPACA_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: bot-secrets
+                  key: ALPACA_SECRET_KEY
+            - name: ALPACA_BASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: bot-secrets
+                  key: ALPACA_BASE_URL
+            - name: GCP_PROJECT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: bot-secrets
+                  key: GCP_PROJECT_ID
+            - name: GCP_BUCKET_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: bot-secrets
+                  key: GCP_BUCKET_NAME
+          restartPolicy: OnFailure

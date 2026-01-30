@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = "==3.12.*"
 dependencies = [
+    "alpaca-py>=0.43.2",
     "altair<5",
     "backtrader>=1.9.78.123",
     "google-cloud-storage>=3.8.0",
@@ -26,5 +27,12 @@ dependencies = [
     "torchaudio>=2.10.0",
     "torchvision>=0.25.0",
     "transformers>=5.0.0",
+    "urllib3>=1.26.18,<2.0.0",
     "yfinance>=1.1.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
 ]

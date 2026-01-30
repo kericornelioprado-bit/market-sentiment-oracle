@@ -26,3 +26,6 @@ venv/
 .vscode/
 .idea/
 *.swp
+
+credentials/
+*.json

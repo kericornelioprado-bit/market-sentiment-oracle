@@ -1,44 +1,37 @@
-
 import backtrader as bt
 import pandas as pd
+import numpy as np
 import pytest
 from unittest.mock import MagicMock
 import io
 import sys
 
 # --- Módulo a Probar ---
-# Importamos la estrategia original para modificarla en nuestro entorno de prueba
 from src.backtesting.strategy import MLStrategy
 
 # --- Clases de Prueba y Mocks ---
 
-class TestStrategy(MLStrategy):
+class MockStrategy(MLStrategy):
     """
     Una versión modificada de la estrategia que usa un modelo mockeado
     para poder controlar las señales de compra/venta durante las pruebas.
     """
-    def __init__(self):
-        super().__init__()
-        # El modelo mock se inyectará directamente en la instancia de la estrategia
+    def start(self):
+        """Inicializa el modelo al iniciar la estrategia."""
         self.model = self.p.model
     
     def next(self):
         if self.order:
             return
 
-        # Simulación de predicción del modelo
-        # En lugar de calcular features, usamos un valor predecibilido del mock
-        # Creamos un array dummy que simula los datos de entrada para el `predict`
-        dummy_input = [[self.dataclose[0]]] # Usamos un valor simple
+        dummy_input = [[self.dataclose[0]]]
         signal = self.model.predict(dummy_input)[0]
 
         if not self.position:
-            # Si la señal es > 0.5 (subirá), compramos
             if signal > 0.5:
                 self.log(f'SEÑAL DE COMPRA (mocked): {signal:.2f}')
                 self.order = self.buy()
         else:
-            # Si la señal es <= 0.5 (bajará), vendemos
             if signal <= 0.5:
                 self.log(f'SEÑAL DE VENTA (mocked): {signal:.2f}')
                 self.order = self.sell()
@@ -46,7 +39,6 @@ class TestStrategy(MLStrategy):
 class MockFeed(bt.feeds.PandasData):
     """
     Un feed de datos personalizado para inyectar datos predecibles en el backtest.
-    Hereda de PandasData pero lo alimentamos con nuestro propio DataFrame.
     """
     @classmethod
     def from_dataframe(cls, df):
@@ -56,41 +48,32 @@ class MockFeed(bt.feeds.PandasData):
 
 def run_test_scenario(data, mock_model_predictions, initial_cash=10000.0):
     """
-    Función de ayuda para ejecutar un escenario de backtesting.
+    Función de ayuda para ejecutar un escenario de backtesting con una estrategia mockeada.
     """
     cerebro = bt.Cerebro()
-    
-    # 1. Añadir datos
     feed = MockFeed.from_dataframe(data)
     cerebro.adddata(feed)
 
-    # 2. Configurar y añadir estrategia con el modelo mockeado
     mock_model = MagicMock()
     mock_model.predict.side_effect = mock_model_predictions
-    cerebro.addstrategy(TestStrategy, model=mock_model)
+    cerebro.addstrategy(MockStrategy, model=mock_model)
     
-    # 3. Configurar broker
     cerebro.broker.setcash(initial_cash)
     
-    # 4. Capturar logs (salida estándar)
     old_stdout = sys.stdout
     sys.stdout = captured_output = io.StringIO()
     
-    # 5. Ejecutar
     cerebro.run()
     
-    # 6. Restaurar salida estándar y devolver resultados
     sys.stdout = old_stdout
-    final_value = cerebro.broker.getvalue()
     logs = captured_output.getvalue()
     
-    return final_value, logs
+    return cerebro.broker.getvalue(), logs
 
 def test_buy_signal_creates_buy_order():
     """
-    Caso A: El modelo predice una subida, se debe generar una orden de compra.
+    Caso A: El modelo mockeado predice una subida, se debe generar una orden de compra.
     """
-    # Datos: 5 días con precios al alza
     price_data = pd.DataFrame({
         'open': [100, 101, 102, 103, 104],
         'high': [101, 102, 103, 104, 105],
@@ -99,20 +82,17 @@ def test_buy_signal_creates_buy_order():
         'volume': [1000] * 5
     }, index=pd.to_datetime(pd.date_range(start='2024-01-01', periods=5)))
     
-    # Predicciones del modelo: Siempre "subirá" (1)
     predictions = [[1]] * 5
     
     _, logs = run_test_scenario(price_data, predictions)
     
-    # Verificación: ¿Se generó la señal de compra y se ejecutó la orden?
     assert "SEÑAL DE COMPRA (mocked): 1.00" in logs
     assert "COMPRA EJECUTADA" in logs
 
 def test_sell_signal_creates_sell_order():
     """
-    Caso B: El modelo predice una bajada, se debe generar una orden de venta.
+    Caso B: El modelo mockeado predice una bajada, se debe generar una orden de venta.
     """
-    # Datos: 5 días, primero sube (para comprar) y luego baja
     price_data = pd.DataFrame({
         'open': [100, 102, 101, 100, 99],
         'high': [101, 103, 102, 101, 100],
@@ -121,29 +101,63 @@ def test_sell_signal_creates_sell_order():
         'volume': [1000] * 5
     }, index=pd.to_datetime(pd.date_range(start='2024-01-01', periods=5)))
     
-    # Predicciones: El primer día sube (para entrar en posición), luego baja (para vender)
     predictions = [[1], [0], [0], [0], [0]]
     
     _, logs = run_test_scenario(price_data, predictions)
     
-    # Verificación: ¿Se generó la señal de venta y se ejecutó la orden?
     assert "SEÑAL DE VENTA (mocked): 0.00" in logs
     assert "VENTA EJECUTADA" in logs
 
-def test_notify_order_logs_execution():
+def test_ml_strategy_triggers_orders_on_crossover():
     """
-    Verifica que `notify_order` registra la ejecución de una compra.
-    Este test es redundante con los anteriores, pero es una buena práctica tenerlo
-    explícitamente si la lógica de notificación fuera más compleja.
+    Test para la MLStrategy original, verificando que la lógica
+    de trading real (cruce de medias) genera órdenes de compra y venta.
     """
+    # 1. Crear Data Feed sintético con tendencias claras
+    n_days = 80
+    date_range = pd.to_datetime(pd.date_range(start='2024-01-01', periods=n_days))
+    
+    # Días 0-20: Precio bajo y estable
+    p1 = np.full(21, 100.0)
+    # Días 21-50: Subida agresiva a 200
+    p2 = np.linspace(100, 200, 30)
+    # Días 51-79: Caída agresiva a 50
+    p3 = np.linspace(200, 50, 29)
+    
+    close_prices = np.concatenate([p1, p2, p3])
+    
     price_data = pd.DataFrame({
-        'close': [100, 101, 102, 103, 104]
-    }, index=pd.to_datetime(pd.date_range(start='2024-01-01', periods=5)))
-    price_data['open'] = price_data['high'] = price_data['low'] = price_data['volume'] = price_data['close']
+        'open': close_prices - 1,
+        'high': close_prices + 1,
+        'low': close_prices - 1,
+        'close': close_prices,
+        'volume': [1000] * n_days
+    }, index=date_range)
 
-    predictions = [[1]] * 5
+    # 2. Configurar y ejecutar Cerebro con la estrategia real
+    cerebro = bt.Cerebro()
+    feed = MockFeed.from_dataframe(price_data)
+    cerebro.adddata(feed)
+    cerebro.addstrategy(MLStrategy) # Usamos la estrategia original
+    cerebro.broker.setcash(10000.0)
     
-    _, logs = run_test_scenario(price_data, predictions)
+    # Capturar logs
+    old_stdout = sys.stdout
+    sys.stdout = captured_output = io.StringIO()
     
-    # Verificación del formato del log de ejecución
-    assert "COMPRA EJECUTADA, Precio: 101.00, Costo:" in logs
+    # 3. Ejecutar
+    strategies = cerebro.run()
+    strategy_instance = strategies[0]
+    
+    sys.stdout = old_stdout
+    logs = captured_output.getvalue()
+    
+    # 4. Aserciones
+    # Verificar que se generaron señales de compra y venta en los logs
+    assert "SEÑAL DE COMPRA (Simulada)" in logs
+    assert "COMPRA EJECUTADA" in logs
+    assert "SEÑAL DE VENTA (Simulada)" in logs
+    assert "VENTA EJECUTADA" in logs
+
+    # Verificar que la estrategia tiene un registro de órdenes
+    assert hasattr(strategy_instance, 'order')

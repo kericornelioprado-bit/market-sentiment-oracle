@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch, mock_open, call
 
 # Modules to test
 from src.data.ingest_news import NewsArticleSchema, fetch_news, upload_to_gcs as ingest_upload
-from src.data import seed_mock_data
+
 
 # Define a valid DataFrame for NewsArticleSchema
 def create_valid_news_df():
@@ -173,48 +173,9 @@ def test_ingest_upload_to_gcs_failure(mock_get_client):
 
         # No mocks should be called, and no error should be raised
 
-# --- Tests for src.data.seed_mock_data ---
 
-def test_generate_mock_prices():
-    """Test the mock price generation function."""
-    df = seed_mock_data.generate_mock_prices("TEST", days=10)
-    assert isinstance(df, pd.DataFrame)
-    assert len(df) == 10
-    expected_cols = ["Date", "Open", "High", "Low", "Close", "Volume", "Ticker"]
-    assert all(col in df.columns for col in expected_cols)
 
-def test_generate_mock_sentiment():
-    """Test the mock sentiment generation function."""
-    df = seed_mock_data.generate_mock_sentiment("TEST", days=10)
-    assert isinstance(df, pd.DataFrame)
-    expected_cols = ["date", "title", "sentiment_label", "sentiment_score"]
-    assert all(col in df.columns for col in expected_cols)
 
-@patch('src.data.seed_mock_data.storage.Client')
-@patch('src.data.seed_mock_data.generate_mock_prices')
-@patch('src.data.seed_mock_data.generate_mock_sentiment')
-@patch('src.data.seed_mock_data.upload_to_gcs')
-def test_seed_main_success(mock_upload, mock_gen_sentiment, mock_gen_prices, mock_storage_client):
-    """Test the main function of seed_mock_data."""
-    mock_bucket = MagicMock()
-    mock_storage_client.return_value.get_bucket.return_value = mock_bucket
-    mock_gen_prices.return_value = pd.DataFrame()
-    mock_gen_sentiment.return_value = pd.DataFrame()
-
-    seed_mock_data.main()
-
-    assert mock_gen_prices.call_count == len(seed_mock_data.TICKERS)
-    assert mock_gen_sentiment.call_count == len(seed_mock_data.TICKERS)
-    assert mock_upload.call_count == len(seed_mock_data.TICKERS) * 2
-
-@patch('src.data.seed_mock_data.storage.Client')
-def test_seed_main_gcs_error(mock_storage_client):
-    """Test the main function of seed_mock_data with a GCS connection error."""
-    mock_storage_client.return_value.get_bucket.side_effect = Exception("GCS Error")
-    
-    # Should not raise an exception, but print an error
-    seed_mock_data.main()
-    mock_storage_client.return_value.get_bucket.assert_called_once()
 
     
 

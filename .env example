@@ -1,8 +1,55 @@
-# Credenciales de APIs (NO SUBIR A GITHUB)
-NEWS_API_KEY=tu_clave_real_de_newsapi_aqui
-ALPACA_API_KEY=tu_clave_de_alpaca
-ALPACA_SECRET_KEY=tu_secreto_de_alpaca
+# ==========================================
+# 🔐 CREDENCIALES DE APIS EXTENAS
+# ==========================================
 
-# Configuración del Proyecto
-GCP_PROJECT_ID=tu-id-de-proyecto-gcp
+# 1. NewsAPI (Fuentes de noticias)
+# Consíguela en: https://newsapi.org/account
+NEWS_API_KEY=tu_clave_real_de_newsapi_aqui
+
+# 2. Alpaca Markets (Trading y Datos de Mercado)
+# Consíguelas en: https://app.alpaca.markets/paper/dashboard/overview
+# IMPORTANTE: Asegúrate de usar las keys de "Paper Trading" para pruebas.
+ALPACA_API_KEY=PKxxxxxxxxxxxxxxxxxx
+ALPACA_SECRET_KEY=skxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+# URL Base:
+# - Para Paper (Pruebas): https://paper-api.alpaca.markets
+# - Para Live (Dinero Real): https://api.alpaca.markets
+ALPACA_BASE_URL=https://paper-api.alpaca.markets
+
+# 3. Hugging Face (Opcional)
+# Solo necesario si decides usar modelos privados o gated en el futuro.
+# HF_TOKEN=hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# 4. X / Twitter API (Para el Bot Auditor - Fase 7)
+# Consíguelas en: https://developer.twitter.com/en/portal/dashboard
+X_CONSUMER_KEY=tu_consumer_key
+X_CONSUMER_SECRET=tu_consumer_secret
+X_ACCESS_TOKEN=tu_access_token
+X_ACCESS_TOKEN_SECRET=tu_access_token_secret
+
+# ==========================================
+# ☁️ GOOGLE CLOUD PLATFORM (GCP)
+# ==========================================
+
+# ID de tu proyecto en GCP (no el nombre, el ID)
+GCP_PROJECT_ID=market-oracle-tesis
+# Región de despliegue (ej. us-central1 para latencia baja con Wall Street)
 GCP_REGION=us-central1
+# Nombre de tu Bucket (Data Lake) donde se guardan parquets y modelos
+GCP_BUCKET_NAME=market-oracle-tesis-data-lake
+
+# Ruta local a tu archivo JSON de cuenta de servicio (solo para desarrollo local)
+# En Kubernetes/GCP esto se maneja automáticamente con Workload Identity.
+GOOGLE_APPLICATION_CREDENTIALS=./credentials/service-account-key.json
+
+# ==========================================
+# ⚙️ CONFIGURACIÓN DEL SISTEMA
+# ==========================================
+
+# Entorno de ejecución: 'development', 'staging', 'production'
+ENV_TYPE=development
+# Nivel de Log: DEBUG, INFO, WARNING, ERROR
+LOG_LEVEL=INFO
+
+# Tickers a monitorear (Las 7 Magníficas)
+TARGET_TICKERS=AAPL,MSFT,GOOGL,AMZN,NVDA,META,TSLA

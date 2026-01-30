@@ -4,6 +4,7 @@ from datetime import datetime
 from google.cloud import storage
 import io
 import os
+import glob
 
 # Importamos tu nuevo módulo de indicadores
 from src.features.technical_indicators import add_technical_features
@@ -69,16 +70,24 @@ class DataMerger:
         for ticker in self.tickers:
             print(f"\n--- Procesando {ticker} ---")
             
-            # 1. Cargar Precios (Raw)
-            # Ajusta la ruta según cómo guardaste en ingesta (raw/prices/TICKER/...)
-            # Aquí buscaremos el archivo consolidado o iteraremos. 
-            # Para simplificar, asumiremos que existe un consolidado o tomamos el más reciente.
-            prices_blob = f"data/raw/prices/{ticker}_latest.parquet" 
-            df_price = self.load_parquet_from_gcs(prices_blob)
+            # 1. Cargar Precios (Raw) - Búsqueda dinámica local
+            # Busca archivos que coincidan con el patrón del ticker
+            price_files = glob.glob(f"data/raw/{ticker}_*.parquet")
             
-            if df_price.empty:
-                print(f"❌ No hay precios para {ticker}, saltando.")
+            if not price_files:
+                print(f"❌ No hay archivos de precios para {ticker}, saltando.")
                 continue
+
+            # Selecciona el archivo más reciente por fecha de modificación
+            latest_price_file = max(price_files, key=os.path.getmtime)
+            print(f"   📂 Cargando precios desde: {latest_price_file}")
+            df_price = pd.read_parquet(latest_price_file)
+
+            # Asegurar que 'Date' sea una columna, no un índice
+            if 'Date' not in df_price.columns:
+                df_price.reset_index(inplace=True)
+                if 'index' in df_price.columns:
+                    df_price.rename(columns={'index': 'Date'}, inplace=True)
 
             # Limpieza básica de precios
             df_price['Date'] = pd.to_datetime(df_price['Date']).dt.normalize()
@@ -90,6 +99,7 @@ class DataMerger:
             df_price = add_technical_features(df_price, price_col='Close')
 
             # 3. Cargar Sentimiento (Processed)
+            # Mantenemos GCS para el sentimiento, podría ser local también
             sentiment_blob = f"data/processed/embeddings/{ticker}_sentiment.parquet"
             df_sentiment = self.load_parquet_from_gcs(sentiment_blob)
             
@@ -98,13 +108,10 @@ class DataMerger:
                 daily_sentiment = self.process_sentiment_aggregation(df_sentiment)
                 
                 # 4. MERGE (Left Join usando el índice de precios)
-                # Usamos left join para mantener todos los días de trading, 
-                # aunque no haya noticias.
                 daily_sentiment.set_index('date_only', inplace=True)
                 master_df = df_price.join(daily_sentiment, how='left')
                 
                 # 5. Manejo de NaNs en Sentimiento
-                # Si no hubo noticias ese día, el sentimiento es Neutral (0)
                 master_df['daily_sentiment'] = master_df['daily_sentiment'].fillna(0)
                 master_df['news_volume'] = master_df['news_volume'].fillna(0)
                 
@@ -115,17 +122,14 @@ class DataMerger:
                 master_df['news_volume'] = 0
 
             # 6. Guardar Dataset Maestro (Feature Matrix)
-            # Eliminamos filas con NaNs generados por los indicadores técnicos (los primeros 20-30 días)
             master_df.dropna(inplace=True)
             
-            output_path = f"data/gold/master_dataset_{ticker}.parquet"
-            # Guardar en buffer y subir
-            buff = io.BytesIO()
-            master_df.to_parquet(buff)
-            buff.seek(0)
+            output_dir = "data/gold"
+            os.makedirs(output_dir, exist_ok=True)
+            output_path = f"{output_dir}/master_dataset_{ticker}.parquet"
             
-            self.bucket.blob(output_path).upload_from_file(buff)
-            print(f"✅ Dataset Maestro guardado en: gs://{self.bucket_name}/{output_path}")
+            master_df.to_parquet(output_path)
+            print(f"✅ Dataset Maestro guardado en: {output_path}")
             print(f"   Shape final: {master_df.shape}")
 
 if __name__ == "__main__":
