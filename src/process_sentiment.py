@@ -88,17 +88,21 @@ def get_sentiment_batch(texts, tokenizer, model, batch_size=32):
 
         predictions = torch.nn.functional.softmax(outputs.logits, dim=-1)
 
+        # Vectorized max
+        # Obtener scores y indices maximos directamente en el tensor (optimizado)
+        max_scores, max_indices = torch.max(predictions, dim=1)
+
+        # Mover a CPU y convertir a lista una sola vez
+        max_scores = max_scores.tolist()
+        max_indices = max_indices.tolist()
+
         # Mapping labels
         labels_map = ["positive", "negative", "neutral"]
 
-        for j, probs in enumerate(predictions):
-            scores = probs.tolist()
-            max_score = max(scores)
-            max_idx = scores.index(max_score)
-
+        for j, (score, idx) in enumerate(zip(max_scores, max_indices)):
             # Asignar resultado a la posicion original
             original_idx = valid_indices[j]
-            batch_results[original_idx] = (labels_map[max_idx], max_score)
+            batch_results[original_idx] = (labels_map[idx], score)
 
         results.extend(batch_results)
 

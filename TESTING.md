@@ -43,6 +43,38 @@ Pruebas end-to-end simuladas para validar el flujo completo.
     * Ejecución de `fetch_news` con mocks de `requests` y `google.cloud.storage`.
     * Verificación de la creación de archivos Parquet y llamadas de subida a GCS.
 
+### 4. Feature Engineering (`test_features.py`)
+
+Validación de la generación de indicadores técnicos y fusión de datos.
+
+* **Cálculo de Indicadores**:
+    * Verificación de fórmulas para RSI, MACD y Bollinger Bands contra valores esperados.
+* **Integridad de Datos**:
+    * Asegurar que no se introduzcan NaNs inesperados y que el índice de fechas se mantenga consistente.
+
+### 5. Modelos (`test_models.py`)
+
+Pruebas para el entrenamiento y persistencia de modelos (LSTM, SVM).
+
+* **Entrenamiento**:
+    * Verificación de que el flujo de entrenamiento (`train`) se ejecuta sin errores con datos simulados.
+* **Persistencia**:
+    * Comprobación de que los modelos (`.keras`, `.pkl`) se guardan correctamente en el disco.
+
+### 6. Backtesting (`test_backtest.py`)
+
+Verificación de la lógica de simulación de estrategias.
+
+* **Ejecución de Estrategia**:
+    * Validación del cálculo de PnL (Profit and Loss) y métricas de desempeño (Sharpe Ratio).
+
+### 7. Dashboard (`test_dashboard.py`)
+
+Pruebas de la interfaz de usuario (Streamlit) y visualización.
+
+* **Carga de Componentes**:
+    * Verificación de que los componentes principales del dashboard se renderizan sin excepciones.
+
 ## 🚀 Ejecución de Pruebas
 
 Para ejecutar la suite de pruebas localmente:
