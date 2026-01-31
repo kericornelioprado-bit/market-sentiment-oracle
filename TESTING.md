@@ -75,6 +75,16 @@ Pruebas de la interfaz de usuario (Streamlit) y visualización.
 * **Carga de Componentes**:
     * Verificación de que los componentes principales del dashboard se renderizan sin excepciones.
 
+### 8. Ingesta de Datos de Mercado (Raw) (`test_market_data_ingest.py`)
+
+Validación de la descarga de datos históricos desde Yahoo Finance.
+
+* **Mocking de API Externa**:
+    * Uso de `unittest.mock.patch` para interceptar llamadas a `yfinance.download`.
+    * Simulación de DataFrames vacíos y manejo de excepciones de red.
+* **Persistencia**:
+    * Verificación de llamadas a `to_parquet` y creación de directorios.
+
 ## 🚀 Ejecución de Pruebas
 
 Para ejecutar la suite de pruebas localmente:
