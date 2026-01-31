@@ -53,4 +53,8 @@ Orquestación de cargas de trabajo definida en manifiestos YAML.
 Imágenes almacenadas en Google Artifact Registry:
 1.  `ingest-news`: Scripts de extracción de NewsAPI.
 2.  `sentiment-processor`: Entorno PyTorch (CPU) + Transformers para FinBERT.
+    - **Origen**: `Dockerfile.processor`
+    - **Seguridad**: Ejecución como usuario no-root (`appuser`).
 3.  `market-oracle`: Imagen principal unificada (v2) para ingesta y otros procesos.
+    - **Origen**: `Dockerfile`
+    - **Entrypoint**: `src.execution.bot`
