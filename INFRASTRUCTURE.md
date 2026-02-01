@@ -52,5 +52,5 @@ Orquestación de cargas de trabajo definida en manifiestos YAML.
 
 Imágenes almacenadas en Google Artifact Registry:
 1.  `ingest-news`: Scripts de extracción de NewsAPI.
-2.  `sentiment-processor`: Entorno PyTorch (CPU) + Transformers para FinBERT.
-3.  `market-oracle`: Imagen principal unificada (v2) para ingesta y otros procesos.
+2.  `sentiment-processor`: Entorno PyTorch (CPU) + Transformers para FinBERT. **Seguridad**: Ejecuta como usuario no-root.
+3.  `market-oracle`: Imagen principal unificada (v2) para ingesta y otros procesos. **Seguridad**: Ejecuta como usuario no-root (`appuser`).

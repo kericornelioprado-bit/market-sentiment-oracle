@@ -5,6 +5,12 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### 🛡️ Seguridad
+- **CRITICAL**: Se aseguró `Dockerfile` para ejecutar la aplicación como usuario no-root (`appuser`), mitigando riesgos de privilegios.
+- Configuración de `MPLCONFIGDIR` para permitir ejecución de `matplotlib` sin permisos de root.
+
 ## [v0.2.0] - 2026-01-29
 
 ### 🚀 Nuevas Funcionalidades
