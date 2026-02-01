@@ -77,42 +77,59 @@ def test_calculate_rsi_manual(simple_price_data):
 
 # --- Pruebas para merge_data.py ---
 
+@patch('src.features.merge_data.glob.glob')
+@patch('src.features.merge_data.os.path.getmtime')
+@patch('src.features.merge_data.pd.read_parquet')
 @patch('src.features.merge_data.storage.Client')
-def test_merge_alignment_and_nan_handling(mock_storage_client, mock_price_data_for_merge, mock_sentiment_data_for_merge):
+def test_merge_alignment_and_nan_handling(
+    mock_storage_client,
+    mock_read_parquet,
+    mock_getmtime,
+    mock_glob,
+    mock_price_data_for_merge,
+    mock_sentiment_data_for_merge
+):
     """
     Prueba crítica:
-    1. Mockea la carga desde GCS.
+    1. Mockea la carga desde GCS (Sentimiento) y Local (Precios).
     2. Verifica la correcta alineación de fechas.
     3. Verifica que los NaNs de sentimiento se rellenen con 0.
     """
     # Configuración del Mock de GCS
     mock_bucket = MagicMock()
-    mock_blob_price = MagicMock()
     mock_blob_sentiment = MagicMock()
     
     # Simular que los blobs existen
-    mock_blob_price.exists.return_value = True
     mock_blob_sentiment.exists.return_value = True
 
-    # Simular la descarga de datos
+    # Simular la descarga de datos de sentimiento (como bytes)
     def mock_download_parquet(df):
         buffer = pd.io.common.BytesIO()
         df.to_parquet(buffer)
         buffer.seek(0)
         return buffer.read()
 
-    mock_blob_price.download_as_bytes.return_value = mock_download_parquet(mock_price_data_for_merge)
     mock_blob_sentiment.download_as_bytes.return_value = mock_download_parquet(mock_sentiment_data_for_merge)
 
-    # Mapear llamadas de blob() al mock correcto
-    def blob_side_effect(blob_name):
-        if 'prices' in blob_name:
-            return mock_blob_price
-        return mock_blob_sentiment
-        
-    mock_bucket.blob.side_effect = blob_side_effect
+    # Mapear llamadas de blob()
+    mock_bucket.blob.return_value = mock_blob_sentiment
     mock_storage_client.return_value.bucket.return_value = mock_bucket
     
+    # Configuración de Mocks Locales (Precios)
+    mock_glob.return_value = ["data/raw/TEST_20240101.parquet"]
+    mock_getmtime.return_value = 1234567890.0
+
+    # Configurar pd.read_parquet para devolver precios o sentimientos según el input
+    def side_effect_read_parquet(path_or_buf, *args, **kwargs):
+        if isinstance(path_or_buf, str):
+            # Lectura de archivo local (Precios)
+            return mock_price_data_for_merge.copy()
+        else:
+            # Lectura de buffer (Sentimiento desde GCS)
+            return mock_sentiment_data_for_merge.copy()
+
+    mock_read_parquet.side_effect = side_effect_read_parquet
+
     merger = DataMerger(bucket_name="fake-bucket", tickers=["TEST"])
 
     # Variable para capturar el DataFrame final antes de la subida
@@ -131,7 +148,7 @@ def test_merge_alignment_and_nan_handling(mock_storage_client, mock_price_data_f
     # El mock de `to_parquet` capturará este DataFrame.
     # El mock de `dropna` simplemente devolverá el DataFrame sin cambios.
     with patch('pandas.DataFrame.to_parquet', new=capture_dataframe_to_parquet):
-        with patch('pandas.DataFrame.dropna', side_effect=lambda *args, **kwargs: captured_df) as mock_dropna:
+        with patch('pandas.DataFrame.dropna', side_effect=lambda *args, **kwargs: captured_df):
              merger.run_pipeline()
 
     # Ahora `captured_df` tiene el estado del DataFrame justo antes de ser guardado

@@ -64,8 +64,9 @@ def calculate_log_returns(series: pd.Series) -> pd.Series:
     Preferible sobre % cambio simple para modelos LSTM por sus propiedades estadísticas
     (simetría y aditividad temporal).
     """
-    # np.log(Pt / Pt-1)
-    return np.log(series / series.shift(1))
+    # np.log(Pt) - np.log(Pt-1) which is mathematically equivalent to np.log(Pt / Pt-1)
+    # Optimized: avoid division and copy from shift(1)
+    return np.log(series).diff()
 
 def calculate_volatility(series: pd.Series, window: int = 21) -> pd.Series:
     """

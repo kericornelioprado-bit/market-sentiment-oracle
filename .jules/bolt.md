@@ -5,3 +5,7 @@
 ## 2025-05-24 - Vectorized Tensor Post-processing
 **Learning:** Iterating over PyTorch tensors in Python to find max values/indices (`max(scores)`, `scores.index()`) is significantly slower than using `torch.max(dim=1)`. Vectorizing this step yielded a ~2.8x speedup for the post-processing phase of FinBERT inference.
 **Action:** When working with batch predictions from models, always perform reduction operations (max, min, mean) on the tensor directly before moving data to CPU/Python lists.
+
+## 2025-05-24 - Log Returns Optimization
+**Learning:** `np.log(series).diff()` is ~12% faster than `np.log(series / series.shift(1))` for log returns. It avoids intermediate array creation and division.
+**Action:** Use this pattern for all log return calculations. Ensure tests mocking data pipelines accurately reflect local vs cloud file handling to avoid false negatives during verification.
