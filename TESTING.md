@@ -13,7 +13,7 @@ Este documento describe la metodología de testing utilizada para asegurar la ca
 
 Las pruebas se encuentran en el directorio `tests/` y cubren los siguientes aspectos críticos:
 
-### 1. Ingesta de Datos (`test_ingest.py`)
+### 1. Ingesta de Noticias (`test_ingest.py`)
 
 Se verifica el módulo `src.data.ingest_news` para asegurar la robustez de la extracción.
 
@@ -26,7 +26,17 @@ Se verifica el módulo `src.data.ingest_news` para asegurar la robustez de la ex
 * **Interacción con la Nube (GCS)**:
     * Verificación de llamadas a `upload_from_filename` sin conexión real a internet.
 
-### 2. Procesamiento de Sentimiento (`test_process_sentiment.py`)
+### 2. Ingesta de Mercado (`test_market_data_ingest.py`)
+
+Se verifica el módulo `src.data.ingest` para asegurar la correcta descarga de datos históricos.
+
+* **Mocking de yfinance**:
+    * Simulación de `yf.download` para evitar dependencias de red y límites de API.
+    * Validación de respuestas vacías o excepciones de red.
+* **Persistencia**:
+    * Verificación de la creación de archivos Parquet en el directorio correcto.
+
+### 3. Procesamiento de Sentimiento (`test_process_sentiment.py`)
 
 Se verifican las optimizaciones de inferencia en `src.process_sentiment`.
 
@@ -35,7 +45,7 @@ Se verifican las optimizaciones de inferencia en `src.process_sentiment`.
 * **Manejo de Casos Borde**:
     * Verificación del comportamiento ante textos vacíos o nulos (retorno de "neutral").
 
-### 3. Pruebas de Integración (`test_integration.py`)
+### 4. Pruebas de Integración (`test_integration.py`)
 
 Pruebas end-to-end simuladas para validar el flujo completo.
 
@@ -43,7 +53,7 @@ Pruebas end-to-end simuladas para validar el flujo completo.
     * Ejecución de `fetch_news` con mocks de `requests` y `google.cloud.storage`.
     * Verificación de la creación de archivos Parquet y llamadas de subida a GCS.
 
-### 4. Feature Engineering (`test_features.py`)
+### 5. Feature Engineering (`test_features.py`)
 
 Validación de la generación de indicadores técnicos y fusión de datos.
 
@@ -52,7 +62,7 @@ Validación de la generación de indicadores técnicos y fusión de datos.
 * **Integridad de Datos**:
     * Asegurar que no se introduzcan NaNs inesperados y que el índice de fechas se mantenga consistente.
 
-### 5. Modelos (`test_models.py`)
+### 6. Modelos (`test_models.py`)
 
 Pruebas para el entrenamiento y persistencia de modelos (LSTM, SVM).
 
@@ -61,14 +71,14 @@ Pruebas para el entrenamiento y persistencia de modelos (LSTM, SVM).
 * **Persistencia**:
     * Comprobación de que los modelos (`.keras`, `.pkl`) se guardan correctamente en el disco.
 
-### 6. Backtesting (`test_backtest.py`)
+### 7. Backtesting (`test_backtest.py`)
 
 Verificación de la lógica de simulación de estrategias.
 
 * **Ejecución de Estrategia**:
     * Validación del cálculo de PnL (Profit and Loss) y métricas de desempeño (Sharpe Ratio).
 
-### 7. Dashboard (`test_dashboard.py`)
+### 8. Dashboard (`test_dashboard.py`)
 
 Pruebas de la interfaz de usuario (Streamlit) y visualización.
 
