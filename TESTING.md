@@ -13,7 +13,9 @@ Este documento describe la metodología de testing utilizada para asegurar la ca
 
 Las pruebas se encuentran en el directorio `tests/` y cubren los siguientes aspectos críticos:
 
-### 1. Ingesta de Datos (`test_ingest.py`)
+### 1. Ingesta de Datos
+
+#### Noticias (`test_ingest.py`)
 
 Se verifica el módulo `src.data.ingest_news` para asegurar la robustez de la extracción.
 
@@ -25,6 +27,13 @@ Se verifica el módulo `src.data.ingest_news` para asegurar la robustez de la ex
     * Cumplimiento estricto de `NewsArticleSchema` (Pandera).
 * **Interacción con la Nube (GCS)**:
     * Verificación de llamadas a `upload_from_filename` sin conexión real a internet.
+
+#### Mercado (`test_market_data_ingest.py`)
+
+Se verifica la descarga de precios históricos (`src.data.ingest`).
+
+* **Mocking**: Simulación de `yfinance` y sistema de archivos para pruebas offline.
+* **Integridad**: Validación de que se generan los archivos Parquet esperados.
 
 ### 2. Procesamiento de Sentimiento (`test_process_sentiment.py`)
 

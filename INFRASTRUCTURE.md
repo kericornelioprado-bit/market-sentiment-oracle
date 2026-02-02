@@ -34,6 +34,12 @@ Orquestación de cargas de trabajo definida en manifiestos YAML.
         * Request: 200m CPU, 256Mi RAM.
         * Limit: 500m CPU, 512Mi RAM.
 
+* **`trading-bot`**
+    * **Frecuencia**: Cada hora (`0 * * * *`).
+    * **Imagen**: `us-central1-docker.pkg.dev/market-oracle-tesis/market-oracle-repo/trading-bot:v1`
+    * **Propósito**: Ejecución de estrategias de trading automatizado con Alpaca API.
+    * **Secretos**: Utiliza `bot-secrets` (ALPACA_API_KEY, etc.).
+
 ### Jobs (Procesamiento Batch)
 * **`news-ingestion-job-v2-dns-fix`**
     * **Propósito**: Ingesta manual de noticias con corrección de DNS.
@@ -54,3 +60,4 @@ Imágenes almacenadas en Google Artifact Registry:
 1.  `ingest-news`: Scripts de extracción de NewsAPI.
 2.  `sentiment-processor`: Entorno PyTorch (CPU) + Transformers para FinBERT.
 3.  `market-oracle`: Imagen principal unificada (v2) para ingesta y otros procesos.
+4.  `trading-bot`: Agente de ejecución de órdenes (Alpaca API).

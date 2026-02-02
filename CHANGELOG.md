@@ -5,6 +5,17 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.2.1] - 2026-01-30
+
+### 🚀 Nuevas Funcionalidades
+- `TradingBot`: Implementación de agente de ejecución de órdenes utilizando Alpaca API (`src/execution/bot.py`).
+
+### 🏗️ Infraestructura
+- CronJob `trading-bot`: Programado para ejecutarse cada hora (L-V) usando la imagen `trading-bot:v1`.
+
+### 🧪 Testing
+- Validación de ingesta de datos de mercado en `test_market_data_ingest.py`.
+
 ## [v0.2.0] - 2026-01-29
 
 ### 🚀 Nuevas Funcionalidades
