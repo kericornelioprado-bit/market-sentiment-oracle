@@ -13,8 +13,14 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./ 
 RUN uv sync
 
-# Copy the rest of the application code
-COPY src/ src/
+# Create a non-root user
+RUN useradd -m -u 1000 appuser
+
+# Copy the rest of the application code with correct ownership
+COPY --chown=appuser:appuser src/ src/
+
+# Switch to the non-root user
+USER appuser
 
 # Command to run the bot
 CMD ["python", "-m", "src.execution.bot"]
