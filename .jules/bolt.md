@@ -9,3 +9,7 @@
 ## 2025-05-25 - Log Returns Optimization
 **Learning:** `np.log(series).diff()` is ~25% faster than `np.log(series / series.shift(1))` for calculating log returns. Division is significantly more expensive than subtraction, and `np.log` cost is similar (or slightly cheaper as `diff` is optimized).
 **Action:** Prefer `log(x).diff()` over `log(x/x_prev)` for time series differencing when values are positive.
+
+## 2025-05-26 - RSI Formula Optimization
+**Learning:** Calculating RSI as `100 * Gain / (Gain + Loss)` is ~1.5x faster than the standard `100 - (100 / (1 + RS))` formula. It avoids one division and one subtraction operation, and naturally handles the `Loss=0` case (avoiding `inf` without extra checks).
+**Action:** Prefer the algebraic simplification `Gain / (Gain + Loss)` for normalized ratios when applicable to reduce operation count and improve numerical stability.
