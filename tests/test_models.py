@@ -2,7 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 import pytest
-from unittest.mock import patch, MagicMock, call
+from unittest.mock import patch, MagicMock
 
 # --- Módulos a Probar ---
 from src.models.train_svm import SVMTrainer
@@ -42,22 +42,24 @@ def test_lstm_create_sequences_shape(input_rows, window_size, expected_sequences
     # Forzar uso de CPU
     os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
-    trainer = LSTMTrainer(bucket_name="dummy")
-    X = np.random.rand(input_rows, 5)  # 5 features
-    y = np.random.randint(0, 2, size=input_rows)
+    with patch("src.models.train_lstm.storage.Client"):
+        trainer = LSTMTrainer(bucket_name="dummy")
+        X = np.random.rand(input_rows, 5)  # 5 features
+        y = np.random.randint(0, 2, size=input_rows)
 
-    X_seq, y_seq = trainer.create_sequences(X, y, time_steps=window_size)
+        X_seq, y_seq = trainer.create_sequences(X, y, time_steps=window_size)
 
-    assert X_seq.shape == (expected_sequences, window_size, 5)
-    assert y_seq.shape == (expected_sequences,)
+        assert X_seq.shape == (expected_sequences, window_size, 5)
+        assert y_seq.shape == (expected_sequences,)
 
 
+@patch("src.models.train_lstm.storage.Client")
 @patch("src.models.train_lstm.LSTMTrainer.load_data")
 @patch("tensorflow.keras.models.Sequential.fit")
 @patch("tensorflow.keras.models.Sequential.save")
 @patch("joblib.dump")
 def test_lstm_train_flow_and_shapes(
-    mock_joblib_dump, mock_model_save, mock_fit, mock_load_data, mock_master_dataset
+    mock_joblib_dump, mock_model_save, mock_fit, mock_load_data, mock_storage_client, mock_master_dataset
 ):
     """
     Prueba el flujo de entrenamiento de LSTM:
@@ -92,11 +94,12 @@ def test_lstm_train_flow_and_shapes(
 # --- Pruebas para train_svm.py ---
 
 
+@patch("src.models.train_svm.storage.Client")
 @patch("src.models.train_svm.SVMTrainer.load_data")
 @patch("src.models.train_svm.GridSearchCV")
 @patch("joblib.dump")
 def test_svm_train_flow_and_shapes(
-    mock_joblib_dump, mock_gridsearchcv, mock_load_data, mock_master_dataset
+    mock_joblib_dump, mock_gridsearchcv, mock_load_data, mock_storage_client, mock_master_dataset
 ):
     """
     Prueba el flujo de entrenamiento de SVM:

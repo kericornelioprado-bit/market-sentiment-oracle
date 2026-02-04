@@ -1,12 +1,11 @@
 import pandas as pd
 import numpy as np
-import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Dropout
 from tensorflow.keras.callbacks import EarlyStopping
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.metrics import classification_report, accuracy_score
 from google.cloud import storage
+from numpy.lib.stride_tricks import sliding_window_view
 import io
 import os
 import joblib
@@ -29,11 +28,22 @@ class LSTMTrainer:
 
     def create_sequences(self, X, y, time_steps=SEQ_LENGTH):
         """Transforma datos 2D en secuencias 3D para LSTM [Samples, Time Steps, Features]"""
-        Xs, ys = [], []
-        for i in range(len(X) - time_steps):
-            Xs.append(X[i : (i + time_steps)])
-            ys.append(y[i + time_steps])
-        return np.array(Xs), np.array(ys)
+        if len(X) <= time_steps:
+            return np.array([]), np.array([])
+
+        # Optimization: Use sliding_window_view to avoid slow python loop and unnecessary copying
+        # X is (N, Features)
+        # sliding_window_view(X, time_steps, axis=0) -> (N-T+1, Features, TimeSteps)
+        X_windows = sliding_window_view(X, time_steps, axis=0)
+
+        # We need (Samples, TimeSteps, Features) -> transpose(0, 2, 1)
+        # And we need to drop the last window because there is no target y for it (y is shifted)
+        X_seq = X_windows[:-1].transpose(0, 2, 1)
+
+        # Targets start from time_steps index
+        y_seq = y[time_steps:]
+
+        return X_seq, y_seq
 
     def train(self, ticker):
         print(f"\n🧠 Entrenando LSTM para {ticker}...")
@@ -101,7 +111,7 @@ class LSTMTrainer:
             monitor="val_loss", patience=5, restore_best_weights=True
         )
 
-        history = model.fit(
+        model.fit(
             X_train_seq,
             y_train_seq,
             epochs=20,  # Pocas épocas para prueba rápida
