@@ -18,8 +18,9 @@ def calculate_rsi(series: pd.Series, period: int = 14) -> pd.Series:
     avg_gain = gain.ewm(alpha=1/period, min_periods=period, adjust=False).mean()
     avg_loss = loss.ewm(alpha=1/period, min_periods=period, adjust=False).mean()
 
-    rs = avg_gain / avg_loss
-    rsi = 100 - (100 / (1 + rs))
+    # Optimization: Use the alternative formula RSI = 100 * avg_gain / (avg_gain + avg_loss)
+    # This avoids division by zero (handling avg_loss=0 naturally) and reduces operations.
+    rsi = 100 * avg_gain / (avg_gain + avg_loss)
     return rsi
 
 def calculate_macd(series: pd.Series, fast: int = 12, slow: int = 26, signal: int = 9):
