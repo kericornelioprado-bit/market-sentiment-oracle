@@ -5,7 +5,7 @@ from google.cloud import storage
 import io
 import tensorflow as tf
 import joblib
-import numpy as np
+from pathlib import Path
 
 # Configuración de página
 st.set_page_config(layout="wide", page_title="Market Sentiment Oracle 🔮")
@@ -36,10 +36,26 @@ def load_data(ticker):
 def load_model(ticker):
     """Carga el modelo LSTM y el scaler entrenados"""
     try:
-        model = tf.keras.models.load_model(f"models/lstm_{ticker}.keras")
-        scaler = joblib.load(f"models/scaler_lstm_{ticker}.pkl")
+        # Secure path handling to prevent directory traversal
+        base_dir = Path("models").resolve()
+
+        # Construct absolute paths
+        model_path = base_dir.joinpath(f"lstm_{ticker}.keras").resolve()
+        scaler_path = base_dir.joinpath(f"scaler_lstm_{ticker}.pkl").resolve()
+
+        # Validate paths are strictly within the models directory
+        if not model_path.is_relative_to(base_dir) or not scaler_path.is_relative_to(base_dir):
+            # Log this security event if logging was configured
+            return None, None
+
+        # Check existence before loading
+        if not model_path.exists() or not scaler_path.exists():
+            return None, None
+
+        model = tf.keras.models.load_model(str(model_path))
+        scaler = joblib.load(str(scaler_path))
         return model, scaler
-    except:
+    except Exception:
         return None, None
 
 

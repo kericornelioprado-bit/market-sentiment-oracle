@@ -7,3 +7,8 @@
 **Vulnerability:** Found `Dockerfile.processor` running as root user. While the main `Dockerfile` was secured, auxiliary or secondary Dockerfiles were missed.
 **Learning:** Security audits often focus on the main entry point. In microservices or multi-container setups, *all* Dockerfiles must be audited.
 **Prevention:** Use a linter like `hadolint` or a policy check to scan all `Dockerfile*` patterns in the repository, not just `Dockerfile`.
+
+## 2026-06-15 - Insecure Path Handling in Model Loading
+**Vulnerability:** The `load_model` function in `src/dashboard/app.py` constructed file paths using unsanitized input (`f"models/lstm_{ticker}.keras"`). While the UI constrained the input, the backend function was vulnerable to path traversal if reused or if the UI was bypassed.
+**Learning:** Hardcoded allowed lists in UI are insufficient security controls. Backend functions must validate inputs and enforce path confinement.
+**Prevention:** Use `pathlib.Path.resolve()` combined with `path.is_relative_to(base_dir)` to ensure that resolved file paths are strictly within the intended directory.
