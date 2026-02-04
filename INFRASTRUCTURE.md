@@ -29,7 +29,7 @@ Orquestación de cargas de trabajo definida en manifiestos YAML.
 ### CronJobs
 * **`ingest-news-daily`**
     * **Frecuencia**: Lunes a Viernes a las 12:00 UTC (06:00 AM CDMX).
-    * **Imagen**: `us-central1-docker.pkg.dev/market-oracle-tesis/market-oracle-repo/ingest-news:latest`
+    * **Imagen**: `us-central1-docker.pkg.dev/market-oracle-tesis/market-repo/ingest-news:latest`
     * **Recursos**:
         * Request: 200m CPU, 256Mi RAM.
         * Limit: 500m CPU, 512Mi RAM.
