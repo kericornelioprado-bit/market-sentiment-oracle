@@ -13,10 +13,13 @@ Este documento describe la metodología de testing utilizada para asegurar la ca
 
 Las pruebas se encuentran en el directorio `tests/` y cubren los siguientes aspectos críticos:
 
-### 1. Ingesta de Datos (`test_ingest.py`)
+### 1. Ingesta de Datos (`test_ingest.py`, `test_market_data_ingest.py`)
 
-Se verifica el módulo `src.data.ingest_news` para asegurar la robustez de la extracción.
+Se verifican los módulos de extracción de noticias y datos de mercado.
 
+* **Datos de Mercado (`test_market_data_ingest.py`)**:
+    * Validación de `src.data.ingest` usando `unittest.mock` para simular `yfinance`.
+    * Asegura que el DataFrame descargado cumpla con el esquema esperado (Open, High, Low, Close, Volume).
 * **Gestión de Estado (Patrón Singleton)**:
     * Uso de `pytest.fixture(autouse=True)` para reiniciar el cliente global de GCS entre pruebas, evitando contaminación de estado (`reset_global_client`).
 * **Interacción con API Externa**:
@@ -43,12 +46,14 @@ Pruebas end-to-end simuladas para validar el flujo completo.
     * Ejecución de `fetch_news` con mocks de `requests` y `google.cloud.storage`.
     * Verificación de la creación de archivos Parquet y llamadas de subida a GCS.
 
-### 4. Feature Engineering (`test_features.py`)
+### 4. Feature Engineering (`test_features.py`, `test_technical_features_integration.py`)
 
 Validación de la generación de indicadores técnicos y fusión de datos.
 
 * **Cálculo de Indicadores**:
     * Verificación de fórmulas para RSI, MACD y Bollinger Bands contra valores esperados.
+* **Integración de Indicadores (`test_technical_features_integration.py`)**:
+    * Pruebas de integración para asegurar que `add_technical_features` genera correctamente todas las columnas requeridas sin errores de ejecución.
 * **Integridad de Datos**:
     * Asegurar que no se introduzcan NaNs inesperados y que el índice de fechas se mantenga consistente.
 
