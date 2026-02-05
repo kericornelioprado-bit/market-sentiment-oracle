@@ -5,6 +5,12 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2026-02-04]
+
+### 🐛 Correcciones
+- Implementación de validación estricta de rutas (`Path Traversal Fix`) en la carga de modelos del dashboard (`src/dashboard/app.py`).
+- Actualización de referencias de imágenes Docker en INFRASTRUCTURE.md para coincidir con los manifiestos de Kubernetes (`ingest-news`).
+
 ## [2026-02-02]
 
 ### 🐛 Correcciones
@@ -48,7 +54,3 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 ### 🧪 Testing
 - Suite de pruebas inicial para la ingesta de noticias con validación de esquemas (Pandera) y mocking de APIs.
 
-## [2026-02-04]
-
-### 🐛 Correcciones
-- Actualización de referencias de imágenes Docker en INFRASTRUCTURE.md para coincidir con los manifiestos de Kubernetes (`ingest-news`).
