@@ -79,6 +79,8 @@ Pruebas de la interfaz de usuario (Streamlit) y visualización.
 
 * **Carga de Componentes**:
     * Verificación de que los componentes principales del dashboard se renderizan sin excepciones.
+* **Seguridad**:
+    * Verificación de vulnerabilidades de Path Traversal en `load_model` asegurando que solo se accedan archivos dentro del directorio permitido.
 
 ## 🚀 Ejecución de Pruebas
 
