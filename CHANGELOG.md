@@ -47,3 +47,8 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ### 🧪 Testing
 - Suite de pruebas inicial para la ingesta de noticias con validación de esquemas (Pandera) y mocking de APIs.
+
+## [2026-02-04]
+
+### 🐛 Correcciones
+- Actualización de referencias de imágenes Docker en INFRASTRUCTURE.md para coincidir con los manifiestos de Kubernetes (`ingest-news`).
