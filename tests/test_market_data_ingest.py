@@ -13,51 +13,44 @@ def test_download_market_data_success():
     """
     Test successful download and saving of market data for multiple tickers.
     """
-    # Mock yfinance.download to return a dummy DataFrame
-    mock_df = pd.DataFrame(
-        {
-            "Open": [100.0, 101.0],
-            "High": [102.0, 103.0],
-            "Low": [99.0, 100.0],
-            "Close": [101.0, 102.0],
-            "Volume": [1000, 1100],
-        },
-        index=pd.to_datetime(["2024-01-01", "2024-01-02"]),
-    )
+    tickers = ["TEST1", "TEST2"]
+    # Create a MultiIndex DataFrame to simulate batch download result
+    # Columns: (Ticker, Price)
+    columns = ["Open", "High", "Low", "Close", "Volume"]
+    multi_index = pd.MultiIndex.from_product([tickers, columns], names=['Ticker', 'Price'])
+
+    # Create dummy data
+    data = []
+    for _ in range(2): # 2 rows
+        row = []
+        for _ in tickers:
+            # Add 5 values for OHLCV
+            row.extend([100.0, 102.0, 99.0, 101.0, 1000])
+        data.append(row)
+
+    mock_df = pd.DataFrame(data, columns=multi_index, index=pd.to_datetime(["2024-01-01", "2024-01-02"]))
 
     with (
         patch("src.data.ingest.yf.download", return_value=mock_df) as mock_yf_download,
         patch("src.data.ingest.os.makedirs") as mock_makedirs,
         patch("pandas.DataFrame.to_parquet") as mock_to_parquet,
-        patch("src.data.ingest.TICKERS", ["TEST1", "TEST2"]),
+        patch("src.data.ingest.TICKERS", tickers),
     ):
         download_market_data()
 
         # Assert os.makedirs was called
         mock_makedirs.assert_called_once_with(OUTPUT_DIR, exist_ok=True)
 
-        # Assert yf.download was called for each ticker
-        expected_calls = [
-            call(
-                "TEST1",
-                start=mock_yf_download.call_args_list[0].kwargs["start"],
-                end=mock_yf_download.call_args_list[0].kwargs["end"],
-                progress=False,
-            ),
-            call(
-                "TEST2",
-                start=mock_yf_download.call_args_list[1].kwargs["start"],
-                end=mock_yf_download.call_args_list[1].kwargs["end"],
-                progress=False,
-            ),
-        ]
-        # We need to ignore start and end dates for comparison as they are dynamic
-        assert mock_yf_download.call_count == len(["TEST1", "TEST2"])
+        # Assert yf.download was called ONCE with all tickers
+        mock_yf_download.assert_called_once()
+        args, kwargs = mock_yf_download.call_args
+        assert args[0] == tickers
+        assert kwargs['group_by'] == 'ticker'
 
         # Assert to_parquet was called for each ticker
-        assert mock_to_parquet.call_count == len(["TEST1", "TEST2"])
+        assert mock_to_parquet.call_count == len(tickers)
 
-        # Verify file names (can be more specific if needed)
+        # Verify file names
         today_date = datetime.now().strftime("%Y-%m-%d")
         mock_to_parquet.assert_has_calls(
             [

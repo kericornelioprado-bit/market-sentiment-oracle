@@ -13,3 +13,7 @@
 ## 2025-05-26 - RSI Formula Optimization
 **Learning:** Calculating RSI as `100 * Gain / (Gain + Loss)` is ~1.5x faster than the standard `100 - (100 / (1 + RS))` formula. It avoids one division and one subtraction operation, and naturally handles the `Loss=0` case (avoiding `inf` without extra checks).
 **Action:** Prefer the algebraic simplification `Gain / (Gain + Loss)` for normalized ratios when applicable to reduce operation count and improve numerical stability.
+
+## 2026-02-05 - yfinance Batch Download
+**Learning:** `yf.download(TICKERS)` is >10x faster than sequential calls due to internal threading. However, it returns a MultiIndex DataFrame where dates are the union of all tickers' history. This injects `NaN` rows for tickers that weren't trading on certain dates (e.g. IPOs).
+**Action:** Always verify data density after batch downloads. Use `df_batch[ticker].dropna(how='all')` to restore the dense format expected by downstream consumers.

@@ -151,7 +151,23 @@ def test_merge_alignment_and_nan_handling(
         with patch(
             "pandas.DataFrame.dropna", side_effect=lambda *args, **kwargs: captured_df
         ) as mock_dropna:
-            merger.run_pipeline()
+            # Patch glob to return a dummy file path
+            with patch("glob.glob", return_value=["data/raw/TEST_2024-01-01.parquet"]):
+                # Patch os.path.getmtime to avoid error
+                with patch("os.path.getmtime", return_value=1234567890):
+                    # Patch pd.read_parquet to return the mock price data when loading local file
+                    # Note: We need to side_effect because read_parquet is also used for GCS blob via BytesIO
+                    original_read_parquet = pd.read_parquet
+
+                    def side_effect_read_parquet(path_or_buf, *args, **kwargs):
+                        if isinstance(path_or_buf, str) and "TEST" in path_or_buf:
+                            return mock_price_data_for_merge.copy()
+                        return original_read_parquet(path_or_buf, *args, **kwargs)
+
+                    with patch(
+                        "pandas.read_parquet", side_effect=side_effect_read_parquet
+                    ):
+                        merger.run_pipeline()
 
     # Ahora `captured_df` tiene el estado del DataFrame justo antes de ser guardado
     final_df = captured_df
