@@ -92,12 +92,19 @@ def fetch_news(symbols=None):
         url = (
             f"https://newsapi.org/v2/everything?"
             f"q={symbol}&from={start_date.date()}&sortBy=publishedAt&"
-            f"language=en&apiKey={API_KEY}"
+            f"language=en"
         )
-        # Added timeout to prevent potential DoS if the API hangs
-        response = requests.get(url, timeout=10)
-        data = response.json()
-        articles = data.get("articles", [])
+        try:
+            # Added timeout to prevent potential DoS if the API hangs
+            # Use header for API key to prevent leakage in logs/URL
+            headers = {"X-Api-Key": API_KEY}
+            response = requests.get(url, headers=headers, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+            articles = data.get("articles", [])
+        except requests.exceptions.RequestException as e:
+            print(f"❌ Error al obtener noticias para {symbol}: {e}")
+            continue
 
         if articles:
             df = pd.DataFrame(articles)

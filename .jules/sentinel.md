@@ -12,3 +12,8 @@
 **Vulnerability:** The `load_model` function in `src/dashboard/app.py` constructed file paths using unsanitized input (`f"models/lstm_{ticker}.keras"`). While the UI constrained the input, the backend function was vulnerable to path traversal if reused or if the UI was bypassed.
 **Learning:** Hardcoded allowed lists in UI are insufficient security controls. Backend functions must validate inputs and enforce path confinement.
 **Prevention:** Use `pathlib.Path.resolve()` combined with `path.is_relative_to(base_dir)` to ensure that resolved file paths are strictly within the intended directory.
+
+## 2026-02-05 - Sensitive Data Exposure in API Calls and Silent Test Failures
+**Vulnerability:** API keys were passed in URL query strings (visible in logs) instead of headers. Additionally, `tests/test_ingest.py` contained nested test functions due to indentation errors, causing pytest to silently skip them.
+**Learning:** Transporting secrets in URLs is a common but dangerous anti-pattern. Test suite health (verifying test counts) is a security concern because "passing" suites may hide broken coverage.
+**Prevention:** Enforce header-based authentication for APIs. Implement CI checks that alert on significant drops in test counts or use linters that detect unreachable code/nested tests.
