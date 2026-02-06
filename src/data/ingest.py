@@ -19,24 +19,44 @@ def download_market_data():
 
     print(f"--- Iniciando Ingesta: {START_DATE} a {END_DATE} ---")
 
+    print(f"Descargando batch: {', '.join(TICKERS)}...")
+
+    try:
+        # Optimization: Batch download is significantly faster (1 request vs N requests)
+        # group_by='ticker' ensures we get a MultiIndex (Ticker, Price)
+        batch_data = yf.download(
+            TICKERS, start=START_DATE, end=END_DATE, group_by="ticker", progress=False
+        )
+    except Exception as e:
+        print(f"❌ Error fatal descargando batch: {e}")
+        return
+
     for ticker in TICKERS:
-        print(f"Descargando {ticker}...")
         try:
-            # Descargar datos
-            df = yf.download(ticker, start=START_DATE, end=END_DATE, progress=False)
+            # Extract ticker dataframe
+            # Handle case where yfinance returns a flat DF (single ticker) or MultiIndex (multiple)
+            if len(TICKERS) == 1:
+                df = batch_data
+            else:
+                if ticker not in batch_data.columns:
+                    print(f"⚠️ Alerta: No se encontraron datos para {ticker} en el batch")
+                    continue
+                df = batch_data[ticker]
+
+            # Clean empty rows (caused by alignment across different trading histories)
+            df = df.dropna(how="all")
 
             if df.empty:
-                print(f"⚠️ Alerta: No se encontraron datos para {ticker}")
+                print(f"⚠️ Alerta: DataFrame vacío tras limpieza para {ticker}")
                 continue
 
             # Guardar en formato Parquet (más eficiente que CSV)
-            # Nombre de archivo: AAPL_2026-01-26.parquet
             filename = f"{OUTPUT_DIR}/{ticker}_{END_DATE}.parquet"
             df.to_parquet(filename)
             print(f"✅ Guardado: {filename} ({len(df)} filas)")
 
         except Exception as e:
-            print(f"❌ Error descargando {ticker}: {e}")
+            print(f"❌ Error procesando {ticker}: {e}")
 
 
 if __name__ == "__main__":
