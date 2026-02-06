@@ -90,3 +90,17 @@ uv sync
 
 # Ejecutar pytest
 uv run pytest
+
+## 📊 Resumen de Ejecución
+
+Estado actual de la suite de pruebas (31 tests en total):
+
+| Módulo | Archivos de Test | Cantidad |
+| :--- | :--- | :--- |
+| **Ingesta** | `test_ingest.py`, `test_market_data_ingest.py` | 12 |
+| **Procesamiento** | `test_process_sentiment.py` | 5 |
+| **Features** | `test_features.py`, `test_technical_features_integration.py` | 4 |
+| **Modelos** | `test_models.py` | 5 |
+| **Backtest** | `test_backtest.py` | 3 |
+| **Dashboard** | `test_dashboard.py` | 1 |
+| **Integración** | `test_integration.py` | 1 |
