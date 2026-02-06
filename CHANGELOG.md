@@ -52,3 +52,4 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ### 🐛 Correcciones
 - Actualización de referencias de imágenes Docker en INFRASTRUCTURE.md para coincidir con los manifiestos de Kubernetes (`ingest-news`).
+- Corrección de vulnerabilidad de Path Traversal en `src/dashboard/app.py` mediante validación estricta de rutas.
