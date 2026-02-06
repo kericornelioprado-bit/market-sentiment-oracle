@@ -56,6 +56,7 @@ def test_newsarticleschema_invalid_url():
 @patch("src.data.ingest_news.upload_to_gcs")
 @patch("src.data.ingest_news.os.makedirs")
 @patch("pandas.DataFrame.to_parquet")
+@patch("src.data.ingest_news.API_KEY", "dummy-key")
 def test_fetch_news_success(mock_to_parquet, mock_makedirs, mock_upload, mock_get):
     """Test successful news fetching and processing."""
     mock_response = MagicMock()
@@ -78,8 +79,17 @@ def test_fetch_news_success(mock_to_parquet, mock_makedirs, mock_upload, mock_ge
     mock_makedirs.assert_called_once()
     assert mock_to_parquet.call_count == 7
 
+    # Verify that the API Key is passed in headers and NOT in the URL
+    # Check the last call
+    args, kwargs = mock_get.call_args
+    url = args[0]
+    assert "apiKey=" not in url
+    assert "headers" in kwargs
+    assert kwargs["headers"]["X-Api-Key"] == "dummy-key"
+
 
 @patch("src.data.ingest_news.requests.get")
+@patch("src.data.ingest_news.API_KEY", "dummy-key")
 def test_fetch_news_api_no_articles(mock_get):
     """Test fetch_news when the API returns no articles."""
     mock_response = MagicMock()
@@ -100,6 +110,7 @@ def test_fetch_news_no_api_key(mock_get):
 
 
 @patch("src.data.ingest_news.requests.get")
+@patch("src.data.ingest_news.API_KEY", "dummy-key")
 def test_fetch_news_schema_error(mock_get):
     """Test that fetch_news handles a SchemaError gracefully."""
     mock_response = MagicMock()
