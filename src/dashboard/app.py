@@ -44,7 +44,9 @@ def load_model(ticker):
         scaler_path = base_dir.joinpath(f"scaler_lstm_{ticker}.pkl").resolve()
 
         # Validate paths are strictly within the models directory
-        if not model_path.is_relative_to(base_dir) or not scaler_path.is_relative_to(base_dir):
+        if not model_path.is_relative_to(base_dir) or not scaler_path.is_relative_to(
+            base_dir
+        ):
             # Log this security event if logging was configured
             return None, None
 

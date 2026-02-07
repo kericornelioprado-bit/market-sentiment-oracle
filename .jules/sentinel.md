@@ -12,3 +12,8 @@
 **Vulnerability:** The `load_model` function in `src/dashboard/app.py` constructed file paths using unsanitized input (`f"models/lstm_{ticker}.keras"`). While the UI constrained the input, the backend function was vulnerable to path traversal if reused or if the UI was bypassed.
 **Learning:** Hardcoded allowed lists in UI are insufficient security controls. Backend functions must validate inputs and enforce path confinement.
 **Prevention:** Use `pathlib.Path.resolve()` combined with `path.is_relative_to(base_dir)` to ensure that resolved file paths are strictly within the intended directory.
+
+## 2026-06-25 - Silent Test Skipping Due to Indentation
+**Vulnerability:** Security-critical tests in `tests/test_ingest.py` were indented inside other test functions, causing `pytest` to silently skip them. This left gaps in test coverage for GCS client reuse and bucket name handling.
+**Learning:** Pytest discovery relies on function names and module scope. Indented functions are treated as internal helpers and ignored.
+**Prevention:** Verify test collection counts against expected numbers in CI/CD pipelines. Use linters or static analysis to detect nested test functions.

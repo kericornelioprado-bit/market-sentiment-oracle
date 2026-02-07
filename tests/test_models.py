@@ -59,7 +59,12 @@ def test_lstm_create_sequences_shape(input_rows, window_size, expected_sequences
 @patch("tensorflow.keras.models.Sequential.save")
 @patch("joblib.dump")
 def test_lstm_train_flow_and_shapes(
-    mock_joblib_dump, mock_model_save, mock_fit, mock_load_data, mock_storage_client, mock_master_dataset
+    mock_joblib_dump,
+    mock_model_save,
+    mock_fit,
+    mock_load_data,
+    mock_storage_client,
+    mock_master_dataset,
 ):
     """
     Prueba el flujo de entrenamiento de LSTM:
@@ -99,7 +104,11 @@ def test_lstm_train_flow_and_shapes(
 @patch("src.models.train_svm.GridSearchCV")
 @patch("joblib.dump")
 def test_svm_train_flow_and_shapes(
-    mock_joblib_dump, mock_gridsearchcv, mock_load_data, mock_storage_client, mock_master_dataset
+    mock_joblib_dump,
+    mock_gridsearchcv,
+    mock_load_data,
+    mock_storage_client,
+    mock_master_dataset,
 ):
     """
     Prueba el flujo de entrenamiento de SVM:
