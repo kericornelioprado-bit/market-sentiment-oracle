@@ -3,6 +3,7 @@ import pytest
 from unittest.mock import MagicMock, patch
 import types
 
+
 def test_load_model_security():
     """Test load_model security preventing path traversal."""
 
@@ -29,9 +30,16 @@ def test_load_model_security():
 
     # Use ModuleType for pandas to pass type checks
     mock_pd = types.ModuleType("pandas")
-    class MockSeries: pass
-    class MockIndex: pass
-    class MockDataFrame: pass
+
+    class MockSeries:
+        pass
+
+    class MockIndex:
+        pass
+
+    class MockDataFrame:
+        pass
+
     mock_pd.Series = MockSeries
     mock_pd.Index = MockIndex
     mock_pd.DataFrame = MockDataFrame
@@ -44,14 +52,25 @@ def test_load_model_security():
 
     # Configure df["Col"] to return list (accepted by Plotly)
     def df_getitem(key):
-        return [100.0] * 15 # Enough for tail(10) logic
+        return [100.0] * 15  # Enough for tail(10) logic
+
     mock_df.__getitem__.side_effect = df_getitem
 
     # Configure df.index to be list
     mock_df.index = list(range(15))
 
     # Configure df columns
-    mock_df.columns = ["Open", "High", "Low", "Close", "Volume", "rsi_14", "daily_sentiment", "bb_upper", "bb_lower"]
+    mock_df.columns = [
+        "Open",
+        "High",
+        "Low",
+        "Close",
+        "Volume",
+        "rsi_14",
+        "daily_sentiment",
+        "bb_upper",
+        "bb_lower",
+    ]
 
     # Configure df.iloc to return latest and prev rows with valid numbers
     mock_latest = MagicMock()
@@ -78,7 +97,7 @@ def test_load_model_security():
             return 110.0
         if key == "bb_lower":
             return 90.0
-        return MagicMock() # For other keys
+        return MagicMock()  # For other keys
 
     mock_latest.__getitem__.side_effect = row_getitem
     mock_prev.__getitem__.side_effect = row_getitem
@@ -87,7 +106,7 @@ def test_load_model_security():
     mock_subset = MagicMock()
     mock_tail = MagicMock()
     mock_subset.tail.return_value = mock_tail
-    mock_tail.values = [[1.0]*len(mock_df.columns)] * 10
+    mock_tail.values = [[1.0] * len(mock_df.columns)] * 10
 
     def df_getitem_complex(key):
         if isinstance(key, list):
@@ -124,13 +143,13 @@ def test_load_model_security():
             mock_model_path = MagicMock()
             mock_model_path.resolve.return_value = mock_model_path
             mock_model_path.exists.return_value = True
-            mock_model_path.is_relative_to.return_value = True # Valid
+            mock_model_path.is_relative_to.return_value = True  # Valid
             mock_model_path.__str__.return_value = "/safe/models/lstm_AAPL.keras"
 
             mock_scaler_path = MagicMock()
             mock_scaler_path.resolve.return_value = mock_scaler_path
             mock_scaler_path.exists.return_value = True
-            mock_scaler_path.is_relative_to.return_value = True # Valid
+            mock_scaler_path.is_relative_to.return_value = True  # Valid
             mock_scaler_path.__str__.return_value = "/safe/models/scaler_lstm_AAPL.pkl"
 
             # Configure joinpath to return the mock paths
@@ -148,13 +167,13 @@ def test_load_model_security():
 
             bad_model_path = MagicMock()
             bad_model_path.resolve.return_value = bad_model_path
-            bad_model_path.is_relative_to.return_value = False # INVALID
+            bad_model_path.is_relative_to.return_value = False  # INVALID
             # Emulate a resolved path outside the base directory
             bad_model_path.__str__.return_value = "/etc/passwd"
 
             bad_scaler_path = MagicMock()
             bad_scaler_path.resolve.return_value = bad_scaler_path
-            bad_scaler_path.is_relative_to.return_value = False # INVALID
+            bad_scaler_path.is_relative_to.return_value = False  # INVALID
             bad_scaler_path.__str__.return_value = "/safe/models/scaler.pkl"
 
             def joinpath_side_effect(arg):
