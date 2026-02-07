@@ -80,6 +80,19 @@ Pruebas de la interfaz de usuario (Streamlit) y visualización.
 * **Carga de Componentes**:
     * Verificación de que los componentes principales del dashboard se renderizan sin excepciones.
 
+## 📊 Resumen de Ejecución
+
+| Módulo | Tipo | Archivos | Tests |
+| :--- | :--- | :--- | :--- |
+| Ingesta | Unitario / Integración | `test_ingest.py`, `test_market_data_ingest.py` | 18 |
+| Procesamiento | Unitario | `test_process_sentiment.py` | 5 |
+| Features | Unitario | `test_features.py`, `test_technical_features_integration.py` | 4 |
+| Modelos | Unitario | `test_models.py` | 3 |
+| Backtesting | Unitario | `test_backtest.py` | 3 |
+| Dashboard | UI / Unitario | `test_dashboard.py` | 1 |
+| Integración | E2E | `test_integration.py` | 1 |
+| **Total** | | | **35** |
+
 ## 🚀 Ejecución de Pruebas
 
 Para ejecutar la suite de pruebas localmente:
