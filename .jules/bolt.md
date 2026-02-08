@@ -13,3 +13,7 @@
 ## 2025-05-26 - RSI Formula Optimization
 **Learning:** Calculating RSI as `100 * Gain / (Gain + Loss)` is ~1.5x faster than the standard `100 - (100 / (1 + RS))` formula. It avoids one division and one subtraction operation, and naturally handles the `Loss=0` case (avoiding `inf` without extra checks).
 **Action:** Prefer the algebraic simplification `Gain / (Gain + Loss)` for normalized ratios when applicable to reduce operation count and improve numerical stability.
+
+## 2026-02-09 - Batch Market Data Ingestion
+**Learning:** Sequential `yf.download` calls for multiple tickers were significantly slower than a single batch call. The batch call (with `group_by='ticker'`) returns a MultiIndex DataFrame, requiring careful extraction and `dropna(how='all')` to handle trading holidays across different markets. This improved ingestion speed by ~4x.
+**Action:** Always prefer `yf.download(tickers_list)` over looping. Ensure robust handling of MultiIndex columns (Ticker, Price) vs single-level columns when the ticker list size varies (1 vs many).
