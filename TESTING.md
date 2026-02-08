@@ -90,3 +90,19 @@ uv sync
 
 # Ejecutar pytest
 uv run pytest
+```
+
+## 📊 Resumen de Ejecución (2026-02-08)
+
+| Módulo | Archivo | Tests Activos |
+| :--- | :--- | :--- |
+| Ingesta (Noticias) | `tests/test_ingest.py` | 9 |
+| Ingesta (Mercado) | `tests/test_market_data_ingest.py` | 3 |
+| Procesamiento | `tests/test_process_sentiment.py` | 5 |
+| Features | `tests/test_features.py` | 3 |
+| Features (Integración) | `tests/test_technical_features_integration.py` | 1 |
+| Modelos | `tests/test_models.py` | 5 |
+| Backtesting | `tests/test_backtest.py` | 3 |
+| Dashboard | `tests/test_dashboard.py` | 1 |
+| Integración | `tests/test_integration.py` | 1 |
+| **Total** | | **31** |

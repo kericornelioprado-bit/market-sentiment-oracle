@@ -5,6 +5,12 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2026-02-08]
+
+### 🏗️ Infraestructura
+- Actualización de `TESTING.md` con conteo preciso de pruebas activas.
+- Verificación de consistencia en `DATA_DICTIONARY.md` e `INFRASTRUCTURE.md`.
+
 ## [2026-02-02]
 
 ### 🐛 Correcciones
