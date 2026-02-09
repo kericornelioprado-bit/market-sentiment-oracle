@@ -13,3 +13,7 @@
 ## 2025-05-26 - RSI Formula Optimization
 **Learning:** Calculating RSI as `100 * Gain / (Gain + Loss)` is ~1.5x faster than the standard `100 - (100 / (1 + RS))` formula. It avoids one division and one subtraction operation, and naturally handles the `Loss=0` case (avoiding `inf` without extra checks).
 **Action:** Prefer the algebraic simplification `Gain / (Gain + Loss)` for normalized ratios when applicable to reduce operation count and improve numerical stability.
+
+## 2026-02-09 - Yahoo Finance Batch Ingestion
+**Learning:** `yfinance.download(TICKERS, group_by='ticker')` provides a ~10x speedup over sequential calls. However, it returns a MultiIndex DataFrame (Ticker, Price) even if the list has a single element, which breaks sequential logic and tests.
+**Action:** Always handle `isinstance(df.columns, pd.MultiIndex)` when ingesting market data in batches, and ensure tests mock this structure correctly.
