@@ -12,3 +12,8 @@
 **Vulnerability:** The `load_model` function in `src/dashboard/app.py` constructed file paths using unsanitized input (`f"models/lstm_{ticker}.keras"`). While the UI constrained the input, the backend function was vulnerable to path traversal if reused or if the UI was bypassed.
 **Learning:** Hardcoded allowed lists in UI are insufficient security controls. Backend functions must validate inputs and enforce path confinement.
 **Prevention:** Use `pathlib.Path.resolve()` combined with `path.is_relative_to(base_dir)` to ensure that resolved file paths are strictly within the intended directory.
+
+## 2026-02-08 - API Key Exposure in URL Parameters
+**Vulnerability:** The `fetch_news` function in `src/data/ingest_news.py` was passing the `NEWS_API_KEY` as a query parameter in the GET request URL. This exposes the API key in proxy logs, browser history, and request logs.
+**Learning:** Even when using HTTPS, query parameters are visible in logs. Documentation often shows query parameters as the "easy" way, leading to insecure implementations.
+**Prevention:** Always prefer sending API keys and sensitive tokens in HTTP headers (e.g., `X-Api-Key` or `Authorization`) rather than URL query parameters. Use `requests.get(url, headers=...)`.

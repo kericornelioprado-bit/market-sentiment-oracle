@@ -92,10 +92,12 @@ def fetch_news(symbols=None):
         url = (
             f"https://newsapi.org/v2/everything?"
             f"q={symbol}&from={start_date.date()}&sortBy=publishedAt&"
-            f"language=en&apiKey={API_KEY}"
+            f"language=en"
         )
         # Added timeout to prevent potential DoS if the API hangs
-        response = requests.get(url, timeout=10)
+        # Sentinel: Move API Key to header and check for errors
+        response = requests.get(url, headers={"X-Api-Key": API_KEY}, timeout=10)
+        response.raise_for_status()
         data = response.json()
         articles = data.get("articles", [])
 
