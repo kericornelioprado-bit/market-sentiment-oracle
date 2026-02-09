@@ -29,6 +29,8 @@ Se verifican los módulos de extracción de noticias y datos de mercado.
 * **Interacción con la Nube (GCS)**:
     * Verificación de llamadas a `upload_from_filename` sin conexión real a internet.
 
+> **Nota**: Se detectaron 6 casos de prueba inactivos en `test_ingest.py` (indentación incorrecta). El conteo actual (12) refleja solo los tests activos y ejecutables.
+
 ### 2. Procesamiento de Sentimiento (`test_process_sentiment.py`)
 
 Se verifican las optimizaciones de inferencia en `src.process_sentiment`.

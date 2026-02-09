@@ -61,5 +61,6 @@ Dataset consolidado para entrenamiento de modelos, generado por `merge_data.py`.
 | `volatility_21d` | Float | Features | Volatilidad histórica (Desviación estándar móvil 21 días). |
 | `daily_sentiment` | Float | Features | Sentimiento diario promedio ponderado por confianza. |
 | `news_volume` | Int | Features | Cantidad de noticias procesadas en el día. |
+| `Target` | Int | Calculated (Train) | 1 si el precio de cierre del día siguiente es mayor al actual, 0 en caso contrario. |
 
-> **Nota sobre Entrenamiento**: Durante el entrenamiento (`train_lstm.py`), se genera una columna `Target` (1 si el precio de cierre del día siguiente es mayor al actual, 0 en caso contrario).
+> **Nota sobre Entrenamiento**: La columna `Target` se genera dinámicamente durante el proceso de entrenamiento en `train_lstm.py`.

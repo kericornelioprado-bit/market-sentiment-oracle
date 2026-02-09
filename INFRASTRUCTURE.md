@@ -38,6 +38,9 @@ Orquestación de cargas de trabajo definida en manifiestos YAML.
     * **Frecuencia**: Cada hora (`0 * * * *`).
     * **Imagen**: `us-central1-docker.pkg.dev/market-oracle-tesis/market-oracle-repo/trading-bot:v1`
     * **Secretos**: Consumen `bot-secrets` (API Keys de Alpaca).
+    * **Configuración Hardcoded**:
+        * **Allocation**: $10,000 USD por operación.
+        * **Confidence Threshold**: > 0.75 para ejecución.
 
 ### Jobs (Procesamiento Batch)
 * **`news-ingestion-job-v2-dns-fix`**
