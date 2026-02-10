@@ -59,4 +59,4 @@ Imágenes almacenadas en Google Artifact Registry:
 1.  `ingest-news`: Scripts de extracción de NewsAPI.
 2.  `sentiment-processor`: Entorno PyTorch (CPU) + Transformers para FinBERT.
 3.  `market-oracle`: Imagen principal unificada (v2) para ingesta y otros procesos.
-4.  `trading-bot`: Entorno de ejecución para el bot de trading (Alpaca API).
+4.  `trading-bot`: Entorno de ejecución para el bot de trading (Alpaca API), optimizado mediante multi-stage builds y dependencias CPU-only (3.27GB).

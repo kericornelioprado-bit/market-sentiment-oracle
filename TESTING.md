@@ -13,6 +13,18 @@ Este documento describe la metodología de testing utilizada para asegurar la ca
 
 Las pruebas se encuentran en el directorio `tests/` y cubren los siguientes aspectos críticos:
 
+### Resumen de Ejecución (35 Tests)
+
+| Módulo | Archivos | Tests |
+| :--- | :--- | :--- |
+| **Ingesta** | `test_ingest.py`, `test_market_data_ingest.py` | 18 |
+| **Procesamiento** | `test_process_sentiment.py` | 5 |
+| **Features** | `test_features.py`, `test_technical_features_integration.py` | 4 |
+| **Modelos** | `test_models.py` | 3 |
+| **Backtesting** | `test_backtest.py` | 3 |
+| **Dashboard** | `test_dashboard.py` | 1 |
+| **Integración** | `test_integration.py` | 1 |
+
 ### 1. Ingesta de Datos (`test_ingest.py`, `test_market_data_ingest.py`)
 
 Se verifican los módulos de extracción de noticias y datos de mercado.
