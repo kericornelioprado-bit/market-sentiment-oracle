@@ -4,6 +4,7 @@ import os
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from google.cloud import storage
+import concurrent.futures
 
 # --- CORRECCIÓN DE IMPORTACIONES PANDERA ---
 # Importamos todo desde pandera.pandas para evitar el FutureWarning
@@ -72,6 +73,54 @@ def upload_to_gcs(source_file_name, destination_blob_name):
         print(f"❌ Error subiendo a GCS: {e}")
 
 
+def process_symbol_news(symbol, start_date, output_dir):
+    """
+    Procesa las noticias para un símbolo específico: descarga, valida y sube a GCS.
+    """
+    print(f"📡 Buscando noticias para: {symbol}...")
+
+    url = (
+        f"https://newsapi.org/v2/everything?"
+        f"q={symbol}&from={start_date.date()}&sortBy=publishedAt&"
+        f"language=en"
+    )
+    try:
+        # Added timeout to prevent potential DoS if the API hangs
+        # Use header for API key to prevent leakage in logs/URL
+        headers = {"X-Api-Key": API_KEY}
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        articles = data.get("articles", [])
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Error al obtener noticias para {symbol}: {e}")
+        return
+
+    if articles:
+        df = pd.DataFrame(articles)
+        df["symbol"] = symbol
+        df["fetched_at"] = datetime.now()
+
+        try:
+            print(f"🔍 Validando {len(df)} artículos para {symbol}...")
+            df_validated = NewsArticleSchema.validate(df)
+            print("✅ Validación exitosa.")
+        except SchemaError as e:
+            print(f"❌ Error de validación de datos para {symbol}: {e}")
+            return
+
+        filename = f"{symbol}_news.parquet"
+        local_path = os.path.join(output_dir, filename)
+        df_validated.to_parquet(local_path, index=False)
+
+        date_folder = datetime.now().strftime("%Y-%m-%d")
+        gcs_path = f"raw/news/{date_folder}/{filename}"
+        upload_to_gcs(local_path, gcs_path)
+
+    else:
+        print(f"⚠️ No se encontraron noticias recientes para {symbol}")
+
+
 def fetch_news(symbols=None):
     if not API_KEY:
         raise ValueError("❌ No se encontró la API Key en el .env")
@@ -86,49 +135,19 @@ def fetch_news(symbols=None):
 
     print(f"--- Descargando Noticias desde {start_date.date()} ---")
 
-    for symbol in symbols:
-        print(f"📡 Buscando noticias para: {symbol}...")
-
-        url = (
-            f"https://newsapi.org/v2/everything?"
-            f"q={symbol}&from={start_date.date()}&sortBy=publishedAt&"
-            f"language=en"
-        )
-        try:
-            # Added timeout to prevent potential DoS if the API hangs
-            # Use header for API key to prevent leakage in logs/URL
-            headers = {"X-Api-Key": API_KEY}
-            response = requests.get(url, headers=headers, timeout=10)
-            response.raise_for_status()
-            data = response.json()
-            articles = data.get("articles", [])
-        except requests.exceptions.RequestException as e:
-            print(f"❌ Error al obtener noticias para {symbol}: {e}")
-            continue
-
-        if articles:
-            df = pd.DataFrame(articles)
-            df["symbol"] = symbol
-            df["fetched_at"] = datetime.now()
-
+    # Optimization: Use ThreadPoolExecutor to fetch news concurrently
+    # This speeds up the process significantly as it is I/O bound
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        futures = {
+            executor.submit(process_symbol_news, symbol, start_date, output_dir): symbol
+            for symbol in symbols
+        }
+        for future in concurrent.futures.as_completed(futures):
             try:
-                print(f"🔍 Validando {len(df)} artículos para {symbol}...")
-                df_validated = NewsArticleSchema.validate(df)
-                print("✅ Validación exitosa.")
-            except SchemaError as e:
-                print(f"❌ Error de validación de datos para {symbol}: {e}")
-                continue
-
-            filename = f"{symbol}_news.parquet"
-            local_path = os.path.join(output_dir, filename)
-            df_validated.to_parquet(local_path, index=False)
-
-            date_folder = datetime.now().strftime("%Y-%m-%d")
-            gcs_path = f"raw/news/{date_folder}/{filename}"
-            upload_to_gcs(local_path, gcs_path)
-
-        else:
-            print(f"⚠️ No se encontraron noticias recientes para {symbol}")
+                future.result()
+            except Exception as e:
+                symbol = futures[future]
+                print(f"❌ Error inesperado procesando {symbol}: {e}")
 
 
 if __name__ == "__main__":
