@@ -1,38 +1,41 @@
 [project]
 name = "market-sentiment-oracle"
 version = "0.1.0"
-description = "Add your description here"
+description = "Market Sentiment Oracle - Tesis Maestría"
 readme = "README.md"
 requires-python = "==3.12.*"
 dependencies = [
     "alpaca-py>=0.43.2",
-    "altair<5",
     "backtrader>=1.9.78.123",
     "google-cloud-storage>=3.8.0",
-    "matplotlib>=3.10.8",
-    "numpy>=2.4.1",
+    "matplotlib>=3.10.0",        # Mantenemos para gráficas básicas
+    "numpy>=2.0.0",
     "pandas<3",
-    "pandera>=0.28.1",
-    "plotly>=6.5.2",
-    "pyarrow>=23.0.0",
-    "pytest>=9.0.2",
-    "pytest-cov>=7.0.0",
-    "pytest-mock>=3.15.1",
-    "python-dotenv>=1.2.1",
-    "requests>=2.32.5",
-    "scikit-learn>=1.8.0",
-    "streamlit>=1.30.0",
-    "tensorflow>=2.20.0",
-    "torch>=2.10.0",
-    "torchaudio>=2.10.0",
-    "torchvision>=0.25.0",
-    "transformers>=5.0.0",
-    "urllib3>=1.26.18,<2.0.0",
-    "yfinance>=1.1.0",
+    "pandera>=0.18.0",
+    "plotly>=5.18.0",            # Mantenemos para el Dashboard
+    "pyarrow>=15.0.0",
+    "python-dotenv>=1.0.0",
+    "requests>=2.31.0",
+    "scikit-learn>=1.4.0",
+    "streamlit>=1.30.0",         # Mantenemos para el Dashboard
+    
+    # --- LA GRAN OPTIMIZACIÓN ---
+    "tensorflow-cpu>=2.16.0",    # Cambio CLAVE: Versión ligera solo CPU
+    "torch>=2.2.0",              # FinBERT lo necesita
+    "transformers>=4.38.0",      # FinBERT lo necesita
+    
+    # Eliminamos: torchaudio, torchvision (No los usas en finanzas)
+    # Eliminamos: pytest (Ya está abajo en dev)
+    
+    "urllib3<2.0.0",             # Restricción necesaria por conflictos
+    "yfinance>=0.2.36",
 ]
 
 [dependency-groups]
 dev = [
-    "pytest>=9.0.2",
-    "pytest-cov>=7.0.0",
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.12.0",
+    "black",                     # Formateador (Opcional)
+    "ruff"                       # Linter (Opcional)
 ]
