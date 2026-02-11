@@ -150,7 +150,7 @@ def test_merge_alignment_and_nan_handling(
     with patch("pandas.DataFrame.to_parquet", new=capture_dataframe_to_parquet):
         with patch(
             "pandas.DataFrame.dropna", side_effect=lambda *args, **kwargs: captured_df
-        ) as mock_dropna:
+        ):
             # Patch glob to return a dummy file path
             with patch("glob.glob", return_value=["data/raw/TEST_2024-01-01.parquet"]):
                 # Patch os.path.getmtime to avoid error

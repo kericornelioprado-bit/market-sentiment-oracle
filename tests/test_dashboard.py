@@ -1,5 +1,4 @@
 import sys
-import pytest
 from unittest.mock import MagicMock, patch
 import types
 
@@ -29,9 +28,16 @@ def test_load_model_security():
 
     # Use ModuleType for pandas to pass type checks
     mock_pd = types.ModuleType("pandas")
-    class MockSeries: pass
-    class MockIndex: pass
-    class MockDataFrame: pass
+
+    class MockSeries:
+        pass
+
+    class MockIndex:
+        pass
+
+    class MockDataFrame:
+        pass
+
     mock_pd.Series = MockSeries
     mock_pd.Index = MockIndex
     mock_pd.DataFrame = MockDataFrame

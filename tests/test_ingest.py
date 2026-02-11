@@ -1,8 +1,7 @@
-import os
 import pandas as pd
 import pandera as pa
 import pytest
-from unittest.mock import MagicMock, patch, mock_open, call
+from unittest.mock import MagicMock, patch
 
 # Modules to test
 from src.data.ingest_news import (

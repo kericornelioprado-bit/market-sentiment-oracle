@@ -1,7 +1,6 @@
 import backtrader as bt
 import pandas as pd
 import numpy as np
-import pytest
 from unittest.mock import MagicMock
 import io
 import sys

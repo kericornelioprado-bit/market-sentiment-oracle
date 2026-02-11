@@ -1,9 +1,5 @@
 import backtrader as bt
 import pandas as pd
-import joblib
-import tensorflow as tf
-import numpy as np
-from datetime import datetime
 import os
 
 # Configuración
@@ -117,7 +113,6 @@ def run_backtest():
 if __name__ == "__main__":
     # Descargar datos de prueba de GCS para que el script funcione local
     from google.cloud import storage
-    import io
 
     bucket_name = "market-oracle-tesis-data-lake"
     blob_path = f"data/raw/prices/{TICKER}_latest.parquet"

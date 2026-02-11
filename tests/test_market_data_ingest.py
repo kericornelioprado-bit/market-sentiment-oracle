@@ -1,11 +1,10 @@
 import pandas as pd
-import yfinance as yf
-from unittest.mock import patch, MagicMock, call
+from unittest.mock import patch, call
 import os
 from datetime import datetime
 
 # Import the function to be tested
-from src.data.ingest import download_market_data, TICKERS, OUTPUT_DIR
+from src.data.ingest import download_market_data, OUTPUT_DIR
 
 
 # Test cases

@@ -1,9 +1,8 @@
 from unittest.mock import MagicMock, patch
 import torch
 import pandas as pd
-import io
 
-from src.process_sentiment import get_sentiment_batch, process_bucket_files
+from src.process_sentiment import get_sentiment_batch, process_bucket_files, get_sentiment
 
 
 def test_get_sentiment_batch_logic():
@@ -80,9 +79,6 @@ def test_get_sentiment_batch_empty_handling():
     # Args[0] of the call
     called_texts = mock_tokenizer.call_args[0][0]
     assert called_texts == ["Valid text"]
-
-
-from src.process_sentiment import get_sentiment
 
 
 def test_get_sentiment_logic():

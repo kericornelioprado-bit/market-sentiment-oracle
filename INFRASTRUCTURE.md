@@ -7,7 +7,7 @@ Este documento detalla la infraestructura aprovisionada en Google Cloud Platform
 La infraestructura base se gestiona mediante Terraform.
 
 ### Almacenamiento
-* **Google Storage Bucket**: `[PROJECT_ID]-data-lake`
+* **Google Storage Bucket**: `market-oracle-tesis-data-lake`
     * **Ubicación**: US
     * **Acceso**: Uniform Bucket Level Access (Seguridad reforzada).
     * **Propósito**: Almacenamiento de datos crudos (Raw) y procesados (Parquet/Embeddings).
