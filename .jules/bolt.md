@@ -17,3 +17,7 @@
 ## 2026-02-05 - yfinance Batch Download
 **Learning:** `yf.download(TICKERS)` is >10x faster than sequential calls due to internal threading. However, it returns a MultiIndex DataFrame where dates are the union of all tickers' history. This injects `NaN` rows for tickers that weren't trading on certain dates (e.g. IPOs).
 **Action:** Always verify data density after batch downloads. Use `df_batch[ticker].dropna(how='all')` to restore the dense format expected by downstream consumers.
+
+## 2026-02-10 - Parallel API Ingestion
+**Learning:** Sequential `requests.get` calls are an I/O bottleneck. Refactoring `fetch_news` to use `ThreadPoolExecutor` yielded a ~4x speedup (2.0s -> 0.5s for 4 items).
+**Action:** When iterating over external API calls, always consider `concurrent.futures`. Ensure error handling is robust within threads to prevent partial failures from crashing the batch.
