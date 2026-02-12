@@ -1,30 +1,27 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: ingest-news-daily
+  name: merge-data-daily
 spec:
-  schedule: "0 6 * * 1-5"
+  schedule: "30 8 * * 1-5"
   jobTemplate:
     spec:
       template:
         spec:
           containers:
-          - name: ingest-news
+          - name: merger
             image: us-central1-docker.pkg.dev/market-oracle-tesis/market-oracle/market-oracle:release
             imagePullPolicy: Always
-            command: ["python", "src/data/ingest_news.py"]
+            command: ["python", "src/features/merge_data.py"]
             env:
-            - name: NEWS_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: market-secrets
-                  key: news-api-key
-            - name: GCP_BUCKET_NAME
-              value: "market-oracle-tesis-data-lake"
+            - name: PYTHONPATH  # 👈 ¡Esta es la clave!
+              value: "/app"
             - name: GCP_PROJECT_ID
               value: "market-oracle-tesis"
+            - name: GCP_BUCKET_NAME
+              value: "market-oracle-tesis-data-lake"
             resources:
               requests:
                 cpu: "100m"
-                memory: "256Mi"
+                memory: "512Mi"
           restartPolicy: OnFailure

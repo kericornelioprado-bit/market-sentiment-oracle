@@ -80,9 +80,10 @@ def test_lstm_train_flow_and_shapes(
     call_args, _ = mock_fit.call_args
     X_train_arg = call_args[0]
 
-    # Después del split 80/20 (80 filas) y la creación de secuencias (80-10=70)
+    # Después del split 80/20 (80 filas) -> Ahora 79 filas porque dropeamos la última en train_lstm.py
+    # Y la creación de secuencias (79-10=69)
     # El número de features es 9 (Close, Open, High, Low, Volume, rsi, macd, sentiment, volume)
-    expected_shape = (70, 10, 9)
+    expected_shape = (69, 10, 9)
     assert X_train_arg.shape == expected_shape
 
     # Verificación de guardado
@@ -126,9 +127,9 @@ def test_svm_train_flow_and_shapes(
     call_args, _ = mock_grid_instance.fit.call_args
     X_train_arg = call_args[0]
 
-    # 99 filas después de dropear el último NaN del target. 80% de 99 es ~79, pero el slicing produce 80.
+    # 99 filas después de dropear el último NaN del target. 80% de 99 es ~79.
     # El número de features para SVM es 4: rsi_14, macd_line, daily_sentiment, news_volume
-    expected_rows = 80
+    expected_rows = 79
     expected_features = 4
     assert X_train_arg.shape == (expected_rows, expected_features)
 

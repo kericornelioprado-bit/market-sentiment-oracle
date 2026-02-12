@@ -39,9 +39,11 @@ class SVMTrainer:
 
         # 1. Crear Target: ¿El precio subirá MAÑANA?
         # Shift(-1) mira al futuro (solo para entrenar, prohibido en inferencia)
+        # Eliminamos la última fila primero porque no tenemos el precio de mañana
+        df = df.iloc[:-1].copy()
         df["Target"] = (df["Close"].shift(-1) > df["Close"]).astype(int)
 
-        # Eliminamos la última fila porque no tiene 'mañana'
+        # Eliminamos filas con NaNs si las hay (aunque con el fix anterior no debería haber en Target)
         df.dropna(inplace=True)
 
         # 2. Seleccionar Features
@@ -114,9 +116,13 @@ class SVMTrainer:
         print(f"   💾 Modelo guardado en models/svm_{ticker}.pkl")
 
 
-if __name__ == "__main__":
+
+def main():
     trainer = SVMTrainer(BUCKET_NAME)
 
     # Entrenar para todos los tickers
     for ticker in TICKERS:
         trainer.train(ticker)
+
+if __name__ == "__main__":
+    main()

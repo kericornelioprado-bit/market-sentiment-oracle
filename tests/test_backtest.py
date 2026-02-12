@@ -2,7 +2,7 @@ import backtrader as bt
 import pandas as pd
 import numpy as np
 import pytest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 import io
 import sys
 
@@ -179,3 +179,79 @@ def test_ml_strategy_triggers_orders_on_crossover():
 
     # Verificar que la estrategia tiene un registro de órdenes
     assert hasattr(strategy_instance, "order")
+
+def test_ml_strategy_hold_scenarios():
+    """
+    Test cases where no order is placed:
+    1. Signal > 0.5 but already in position (Hold).
+    2. Signal <= 0.5 but not in position (Wait).
+    """
+    # Create simple data
+    price_data = pd.DataFrame(
+        {
+            "open": [100, 100, 100],
+            "high": [101, 101, 101],
+            "low": [99, 99, 99],
+            "close": [100, 100, 100],
+            "volume": [1000] * 3,
+        },
+        index=pd.to_datetime(pd.date_range(start="2024-01-01", periods=3)),
+    )
+    
+    # Case 2: Signal <= 0.5, No Position -> Do nothing
+    predictions_sell = [[0.1], [0.1], [0.1]]
+    _, logs_sell = run_test_scenario(price_data, predictions_sell)
+    assert "SEÑAL DE COMPRA" not in logs_sell
+    assert "SEÑAL DE VENTA" not in logs_sell # No position to sell
+    
+    # To test Case 1 (Signal > 0.5, Position Exists), we need to simulate having a position.
+    # We can do this by first sending a Buy signal, then another Buy signal.
+    predictions_buy_twice = [[0.8], [0.8], [0.8]]
+    _, logs_buy = run_test_scenario(price_data, predictions_buy_twice)
+    
+    # Should see "SEÑAL DE COMPRA" for the first one
+    # But checking if we see duplicate orders is harder via logs unless we parse "Order ref"
+    # But MockStrategy code:
+    # if self.order: return (Pending order)
+    # if not self.position: buy
+    # else: if signal <= 0.5: sell
+    # So if position exists and signal > 0.5, it does nothing (which is explicitly ELSE of "signal <= 0.5" check implies continue)
+    
+    assert logs_buy.count("SEÑAL DE COMPRA") >= 1 # At least one
+    # Note: MockStrategy logs "SEÑAL DE COMPRA" irrespective of position? 
+    # No:
+    # if not self.position:
+    #    if signal > 0.5: log... buy...
+    # else:
+    #    ...
+    # So if in position, it goes to else.
+    # In else, if signal <= 0.5, it sells.
+    # If signal > 0.5 in else branch, it does NOTHING.
+    # So "SEÑAL DE COMPRA" should appear ONLY ONCE (when entering).
+    
+    assert logs_buy.count("SEÑAL DE COMPRA") == 1
+
+@patch("src.backtesting.strategy.bt.Cerebro")
+@patch("src.backtesting.strategy.pd.read_parquet")
+@patch("src.backtesting.strategy.os.path.exists")
+def test_run_backtest_function(mock_exists, mock_read_parquet, mock_cerebro):
+    from src.backtesting.strategy import run_backtest
+    
+    # Mock data existence
+    mock_exists.return_value = True
+    
+    # Mock dataframe
+    df = pd.DataFrame({"Close": [100.0], "Date": ["2023-01-01"]})
+    mock_read_parquet.return_value = df
+    
+    # Mock Cerebro
+    mock_instance = MagicMock()
+    mock_cerebro.return_value = mock_instance
+    mock_instance.broker.getvalue.return_value = 10000.0
+    
+    run_backtest()
+    
+    assert mock_instance.run.called
+    assert mock_instance.addstrategy.called
+    assert mock_instance.adddata.called
+

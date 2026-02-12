@@ -83,84 +83,88 @@ def make_prediction(model, scaler, df):
 
 
 # --- INTERFAZ ---
-st.title("🦉 Market Sentiment Oracle")
-st.markdown("### Tesis de Maestría: Predicción Bursátil Híbrida (NLP + LSTM)")
-
-# Sidebar
-selected_ticker = st.sidebar.selectbox("Selecciona un Activo", TICKERS)
-
-# Cargar datos
-df = load_data(selected_ticker)
-
-if df is not None:
-    # Métricas Principales
-    latest = df.iloc[-1]
-    prev = df.iloc[-2]
-    diff = latest["Close"] - prev["Close"]
-    diff_pct = (diff / prev["Close"]) * 100
-
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric(
-        "Precio Cierre", f"${latest['Close']:.2f}", f"{diff:.2f} ({diff_pct:.2f}%)"
-    )
-    col2.metric("RSI (14)", f"{latest['rsi_14']:.2f}", delta=None)
-    col3.metric(
-        "Sentimiento Diario",
-        f"{latest['daily_sentiment']:.2f}",
-        delta_color="off",
-        help="Rango: -1 (Negativo) a 1 (Positivo)",
-    )
-
-    # Predicción IA
-    model, scaler = load_model(selected_ticker)
-    if model:
-        prob = make_prediction(model, scaler, df)
-        sentiment = "🟢 ALCISTA" if prob > 0.5 else "🔴 BAJISTA"
-        confidence = abs(prob - 0.5) * 2  # Escalar a 0-100% de fuerza
-        col4.metric("Predicción IA", sentiment, f"Confianza: {confidence:.1%}")
+def main():
+    st.title("🦉 Market Sentiment Oracle")
+    st.markdown("### Tesis de Maestría: Predicción Bursátil Híbrida (NLP + LSTM)")
+    
+    # Sidebar
+    selected_ticker = st.sidebar.selectbox("Selecciona un Activo", TICKERS)
+    
+    # Cargar datos
+    df = load_data(selected_ticker)
+    
+    if df is not None:
+        # Métricas Principales
+        latest = df.iloc[-1]
+        prev = df.iloc[-2]
+        diff = latest["Close"] - prev["Close"]
+        diff_pct = (diff / prev["Close"]) * 100
+    
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric(
+            "Precio Cierre", f"${latest['Close']:.2f}", f"{diff:.2f} ({diff_pct:.2f}%)"
+        )
+        col2.metric("RSI (14)", f"{latest['rsi_14']:.2f}", delta=None)
+        col3.metric(
+            "Sentimiento Diario",
+            f"{latest['daily_sentiment']:.2f}",
+            delta_color="off",
+            help="Rango: -1 (Negativo) a 1 (Positivo)",
+        )
+    
+        # Predicción IA
+        model, scaler = load_model(selected_ticker)
+        if model:
+            prob = make_prediction(model, scaler, df)
+            sentiment = "🟢 ALCISTA" if prob > 0.5 else "🔴 BAJISTA"
+            confidence = abs(prob - 0.5) * 2  # Escalar a 0-100% de fuerza
+            col4.metric("Predicción IA", sentiment, f"Confianza: {confidence:.1%}")
+        else:
+            col4.warning("Modelo no encontrado")
+    
+        # Gráficos
+        st.subheader("Gráfico Técnico & Sentimiento")
+    
+        # Candlestick
+        fig = go.Figure()
+        fig.add_trace(
+            go.Candlestick(
+                x=df.index,
+                open=df["Open"],
+                high=df["High"],
+                low=df["Low"],
+                close=df["Close"],
+                name="Precio",
+            )
+        )
+    
+        # Bollinger Bands
+        fig.add_trace(
+            go.Scatter(
+                x=df.index,
+                y=df["bb_upper"],
+                line=dict(color="gray", width=1),
+                name="BB Upper",
+            )
+        )
+        fig.add_trace(
+            go.Scatter(
+                x=df.index,
+                y=df["bb_lower"],
+                line=dict(color="gray", width=1),
+                name="BB Lower",
+            )
+        )
+    
+        fig.update_layout(height=500, xaxis_rangeslider_visible=False)
+        st.plotly_chart(fig, use_container_width=True)
+    
+        # Data Table
+        with st.expander("Ver Datos Crudos"):
+            st.dataframe(df.tail(20))
+    
     else:
-        col4.warning("Modelo no encontrado")
+        st.error("No se encontraron datos. Ejecuta el pipeline de datos primero.")
 
-    # Gráficos
-    st.subheader("Gráfico Técnico & Sentimiento")
-
-    # Candlestick
-    fig = go.Figure()
-    fig.add_trace(
-        go.Candlestick(
-            x=df.index,
-            open=df["Open"],
-            high=df["High"],
-            low=df["Low"],
-            close=df["Close"],
-            name="Precio",
-        )
-    )
-
-    # Bollinger Bands
-    fig.add_trace(
-        go.Scatter(
-            x=df.index,
-            y=df["bb_upper"],
-            line=dict(color="gray", width=1),
-            name="BB Upper",
-        )
-    )
-    fig.add_trace(
-        go.Scatter(
-            x=df.index,
-            y=df["bb_lower"],
-            line=dict(color="gray", width=1),
-            name="BB Lower",
-        )
-    )
-
-    fig.update_layout(height=500, xaxis_rangeslider_visible=False)
-    st.plotly_chart(fig, use_container_width=True)
-
-    # Data Table
-    with st.expander("Ver Datos Crudos"):
-        st.dataframe(df.tail(20))
-
-else:
-    st.error("No se encontraron datos. Ejecuta el pipeline de datos primero.")
+if __name__ == "__main__":
+    main()

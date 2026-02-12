@@ -51,17 +51,35 @@ class DataMerger:
             df_sentiment["numeric_label"] * df_sentiment["sentiment_score"]
         )
 
-        # 3. Asegurar fechas (ignorar horas para agrupar por día)
-        # Asumimos que hay una columna 'date' o 'publishedAt'
+        # 3. Asegurar fechas y Ajuste Temporal (Trading Day Alignment)
+        # News occurring after Market Close (16:00 NY Time) should be attributed to the NEXT day
+        # to avoid look-ahead bias when training on Daily Close data.
+        
+        # Determine the column to use
         date_col = "date" if "date" in df_sentiment.columns else "publishedAt"
-        df_sentiment["date_only"] = pd.to_datetime(
-            df_sentiment[date_col]
-        ).dt.normalize()
+        
+        # Convert to datetime and timezone aware (assuming UTC if tz-naive)
+        # NewsAPI returns UTC (Z).
+        timestamps = pd.to_datetime(df_sentiment[date_col], utc=True)
+        
+        # Convert to NY Time (Eastern)
+        timestamps_ny = timestamps.dt.tz_convert("America/New_York")
+        
+        # Logic: If hour >= 16, it belongs to the next day.
+        # Create a 'shift' vector: 1 day if hour >= 16, else 0.
+        # We generally close at 16:00.
+        shift_days = (timestamps_ny.dt.hour >= 16).astype(int)
+        
+        # Apply shift
+        adjusted_dates = timestamps_ny + pd.to_timedelta(shift_days, unit="D")
+        
+        # Normalize to date (remove time)
+        df_sentiment["date_only"] = adjusted_dates.dt.normalize().dt.tz_localize(None)
 
-        # 4. Agregación: GroupBy fecha
+        # 4. Agregación: GroupBy fecha alineada
         # Calculamos:
-        # - mean_sentiment: El sentimiento promedio del día
-        # - news_count: Volumen de noticias (volatilidad de atención)
+        # - mean_sentiment: El sentimiento promedio del día (Weighted Score)
+        # - news_count: Volumen de noticias (Total absolute weight or count)
         daily_sentiment = (
             df_sentiment.groupby("date_only")
             .agg(
@@ -142,10 +160,14 @@ class DataMerger:
             print(f"   Shape final: {master_df.shape}")
 
 
-if __name__ == "__main__":
+def main():
     # Configuración
     BUCKET_NAME = "market-oracle-tesis-data-lake"  # Ajusta a tu nombre real
     TICKERS = ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA"]
 
     merger = DataMerger(BUCKET_NAME, TICKERS)
     merger.run_pipeline()
+
+
+if __name__ == "__main__":
+    main()

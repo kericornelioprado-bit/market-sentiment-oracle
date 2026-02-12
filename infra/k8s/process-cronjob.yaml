@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: process-sentiment-daily
+spec:
+  schedule: "15 8 * * 1-5"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: processor
+            image: us-central1-docker.pkg.dev/market-oracle-tesis/market-oracle/market-oracle:release
+            imagePullPolicy: Always
+            command: ["python", "src/process_sentiment.py"]
+            env:
+            - name: GCP_PROJECT_ID
+              value: "market-oracle-tesis"
+            - name: GCP_BUCKET_NAME
+              value: "market-oracle-tesis-data-lake"
+            resources:
+              requests:
+                cpu: "100m"    # 📉 Mínimo absoluto
+                memory: "768Mi" # 📉 Ajustado
+          restartPolicy: OnFailure

@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: streamlit-dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: market-dashboard
+  template:
+    metadata:
+      labels:
+        app: market-dashboard
+    spec:
+      containers:
+      - name: dashboard
+        image: us-central1-docker.pkg.dev/market-oracle-tesis/market-oracle/market-oracle:release
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8501
+        # 👇 ESTO FALTABA: Decirle que ejecute Streamlit
+        command: ["streamlit"]
+        args: ["run", "src/dashboard/app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+        env:
+        - name: HOME
+          value: "/app"
+        - name: PYTHONPATH
+          value: "/app"
+        - name: GCP_BUCKET_NAME
+          value: "market-oracle-tesis-data-lake"
+        - name: GCP_PROJECT_ID
+          value: "market-oracle-tesis"
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "256Mi"
+          limits:
+            cpu: "500m"
+            memory: "1Gi"

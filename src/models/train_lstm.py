@@ -54,6 +54,8 @@ class LSTMTrainer:
 
         # 1. Preparación de Datos
         # Target: 1 si Close sube mañana, 0 si baja
+        # Optimization: Explicitly drop last row as we don't have tomorrow's price
+        df = df.iloc[:-1].copy()
         df["Target"] = (df["Close"].shift(-1) > df["Close"]).astype(int)
         df.dropna(inplace=True)
 
@@ -132,7 +134,11 @@ class LSTMTrainer:
         print(f"   💾 Modelo guardado en models/lstm_{ticker}.keras")
 
 
-if __name__ == "__main__":
+
+def main():
     trainer = LSTMTrainer(BUCKET_NAME)
     for ticker in TICKERS:
         trainer.train(ticker)
+
+if __name__ == "__main__":
+    main()
